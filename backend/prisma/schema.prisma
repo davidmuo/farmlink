@@ -1,0 +1,218 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id           Int       @id @default(autoincrement())
+  name         String
+  email        String    @unique
+  passwordHash String
+  phone        String?
+  role         String    // "buyer" | "farmer" | "admin"
+  createdAt    DateTime  @default(now())
+
+  buyer            Buyer?
+  farmer           Farmer?
+  admin            Admin?
+  auditLogs        AuditLog[]
+  reviewsGiven     Review[]       @relation("ReviewsGiven")
+  reviewsReceived  Review[]       @relation("ReviewsReceived")
+  notifications    Notification[]
+  messagesSent     Message[]
+  disputesRaised   Dispute[]
+}
+
+model Buyer {
+  id           Int      @id @default(autoincrement())
+  userId       Int      @unique
+  businessName String
+  businessType String
+
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  demands Demand[]
+}
+
+model Farmer {
+  id           Int      @id @default(autoincrement())
+  userId       Int      @unique
+  farmLocation String
+  farmSize     Float
+  cropsGrown   String   // JSON array stored as string
+  isVerified   Boolean  @default(false)
+
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  commitments Commitment[]
+  farmRecords FarmRecord[]
+}
+
+model Admin {
+  id          Int    @id @default(autoincrement())
+  userId      Int    @unique
+  accessLevel String
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Crop {
+  id                  Int       @id @default(autoincrement())
+  cropName            String    @unique
+  category            String
+  seasonality         String
+  storageRequirements String
+
+  demands     Demand[]
+  guidance    Guidance[]
+  farmRecords FarmRecord[]
+  marketPrice MarketPrice?
+}
+
+model Demand {
+  id              Int       @id @default(autoincrement())
+  buyerId         Int
+  cropId          Int
+  quantity        Float
+  pricePerUnit    Float
+  qualityStandard String
+  deliveryStart   DateTime
+  deliveryEnd     DateTime
+  status          String    @default("open") // "open" | "partially_filled" | "closed"
+  notes           String?
+  isRecurring     Boolean   @default(false)
+  recurrenceNote  String?
+  createdAt       DateTime  @default(now())
+
+  buyer       Buyer        @relation(fields: [buyerId], references: [id], onDelete: Cascade)
+  crop        Crop         @relation(fields: [cropId], references: [id])
+  commitments Commitment[]
+}
+
+model Commitment {
+  id                Int      @id @default(autoincrement())
+  farmerId          Int
+  demandId          Int
+  committedQuantity Float
+  commitmentType    String   // "full" | "partial"
+  status            String   @default("pending") // "pending" | "accepted" | "rejected" | "cancelled"
+  deliveryStatus    String   @default("pending") // pending | in_transit | delivered | completed
+  committedAt       DateTime @default(now())
+
+  farmer    Farmer     @relation(fields: [farmerId], references: [id], onDelete: Cascade)
+  demand    Demand     @relation(fields: [demandId], references: [id], onDelete: Cascade)
+  review    Review?
+  messages  Message[]
+  disputes  Dispute[]
+}
+
+model Guidance {
+  id            Int    @id @default(autoincrement())
+  cropId        Int
+  guidanceType  String // "planting" | "harvesting" | "storage" | "pest_control"
+  content       String
+  growthStage   String
+
+  crop Crop @relation(fields: [cropId], references: [id], onDelete: Cascade)
+}
+
+model FarmRecord {
+  id            Int      @id @default(autoincrement())
+  farmerId      Int
+  cropId        Int
+  plantingDate  DateTime
+  areaPlanted   Float
+  notes         String?
+  createdAt     DateTime @default(now())
+
+  farmer Farmer @relation(fields: [farmerId], references: [id], onDelete: Cascade)
+  crop   Crop   @relation(fields: [cropId], references: [id])
+}
+
+model SmsLog {
+  id          Int      @id @default(autoincrement())
+  direction   String   // "outbound" | "inbound"
+  phoneNumber String
+  farmerName  String?
+  message     String
+  status      String   @default("queued") // "queued"|"sent"|"failed"|"processed"
+  demandId    Int?
+  createdAt   DateTime @default(now())
+}
+
+model AuditLog {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  action    String
+  details   String
+  timestamp DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Review {
+  id           Int      @id @default(autoincrement())
+  reviewerId   Int
+  revieweeId   Int
+  commitmentId Int      @unique
+  rating       Int      // 1-5
+  comment      String?
+  createdAt    DateTime @default(now())
+
+  reviewer   User       @relation("ReviewsGiven", fields: [reviewerId], references: [id])
+  reviewee   User       @relation("ReviewsReceived", fields: [revieweeId], references: [id])
+  commitment Commitment @relation(fields: [commitmentId], references: [id])
+}
+
+model Message {
+  id           Int      @id @default(autoincrement())
+  commitmentId Int
+  senderId     Int
+  content      String
+  createdAt    DateTime @default(now())
+
+  commitment Commitment @relation(fields: [commitmentId], references: [id])
+  sender     User       @relation(fields: [senderId], references: [id])
+}
+
+model Notification {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  type      String   // commitment_accepted | commitment_rejected | new_offer | delivery_update | new_message | crop_match
+  title     String
+  body      String
+  link      String?
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model MarketPrice {
+  id        Int      @id @default(autoincrement())
+  cropId    Int      @unique
+  priceMin  Float
+  priceMax  Float
+  unit      String   @default("kg")
+  updatedAt DateTime @updatedAt
+  updatedBy Int
+
+  crop Crop @relation(fields: [cropId], references: [id])
+}
+
+model Dispute {
+  id           Int       @id @default(autoincrement())
+  commitmentId Int
+  raisedById   Int
+  reason       String
+  status       String    @default("open") // "open" | "resolved" | "dismissed"
+  resolution   String?
+  createdAt    DateTime  @default(now())
+  resolvedAt   DateTime?
+
+  commitment Commitment @relation(fields: [commitmentId], references: [id], onDelete: Cascade)
+  raisedBy   User       @relation(fields: [raisedById], references: [id])
+}

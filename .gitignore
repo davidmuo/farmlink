@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Environment variables - NEVER commit these
+.env
+.env.local
+.env.production
+**/.env
+
+# Build output
+dist/
+build/
+**/dist/
+
+# Prisma generated client
+backend/node_modules/.prisma/
+
+# SQLite dev database
+*.db
+*.db-journal
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
