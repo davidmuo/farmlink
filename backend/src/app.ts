@@ -15,6 +15,7 @@ import reviewsRouter     from './routes/reviews';
 import messagesRouter    from './routes/messages';
 import marketPricesRouter from './routes/marketPrices';
 import disputesRouter    from './routes/disputes';
+import aiRouter          from './routes/ai';
 
 dotenv.config();
 
@@ -38,6 +39,7 @@ app.use('/reviews',       reviewsRouter);
 app.use('/messages',      messagesRouter);
 app.use('/market-prices', marketPricesRouter);
 app.use('/disputes',     disputesRouter);
+app.use('/ai',           aiRouter);
 
 app.get('/health', (_req, res) => res.json({ status: 'ok', app: 'FarmLink API', version: '1.0.0' }));
 
