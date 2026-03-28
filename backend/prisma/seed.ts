@@ -11,6 +11,7 @@ async function main() {
   await prisma.notification.deleteMany();
   await prisma.message.deleteMany();
   await prisma.review.deleteMany();
+  await prisma.dispute.deleteMany();
   await prisma.smsLog.deleteMany();
   await prisma.marketPrice.deleteMany();
   await prisma.auditLog.deleteMany();
