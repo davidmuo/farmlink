@@ -8,7 +8,7 @@ export interface AuthRequest extends Request {
   user?: { id: number; role: string; email: string; name: string };
 }
 
-export function authenticate(req: AuthRequest, res: Response, next: NextFunction) {
+export async function authenticate(req: AuthRequest, res: Response, next: NextFunction) {
   const authHeader = req.headers.authorization;
   if (!authHeader?.startsWith('Bearer ')) {
     res.status(401).json({ error: 'No token provided' });
