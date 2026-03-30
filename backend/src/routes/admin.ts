@@ -46,6 +46,35 @@ router.get('/stats', authenticate, requireRole('admin'), async (_req: AuthReques
   res.json({ totalUsers, totalDemands, totalCommitments, openDemands });
 });
 
+// PATCH /admin/users/:id/ban — toggle ban status
+router.patch('/users/:id/ban', authenticate, requireRole('admin'), async (req: AuthRequest, res: Response) => {
+  const userId = parseInt(req.params.id);
+  if (userId === req.user!.id) { res.status(400).json({ error: 'Cannot ban yourself' }); return; }
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  if (!user) { res.status(404).json({ error: 'User not found' }); return; }
+  const updated = await prisma.user.update({
+    where: { id: userId },
+    data: { isBanned: !user.isBanned },
+  });
+  await prisma.auditLog.create({
+    data: { userId: req.user!.id, action: 'TOGGLE_BAN', details: `User #${userId} (${user.name}) isBanned set to ${updated.isBanned}` },
+  });
+  res.json({ ...updated, passwordHash: undefined });
+});
+
+// DELETE /admin/users/:id
+router.delete('/users/:id', authenticate, requireRole('admin'), async (req: AuthRequest, res: Response) => {
+  const userId = parseInt(req.params.id);
+  if (userId === req.user!.id) { res.status(400).json({ error: 'Cannot delete yourself' }); return; }
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  if (!user) { res.status(404).json({ error: 'User not found' }); return; }
+  await prisma.user.delete({ where: { id: userId } });
+  await prisma.auditLog.create({
+    data: { userId: req.user!.id, action: 'DELETE_USER', details: `Deleted user #${userId} (${user.name}, ${user.role})` },
+  });
+  res.json({ ok: true });
+});
+
 // PATCH /admin/farmers/:id/verify — toggle farmer isVerified
 router.patch('/farmers/:id/verify', authenticate, requireRole('admin'), async (req: AuthRequest, res: Response) => {
   try {

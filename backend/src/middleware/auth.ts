@@ -1,8 +1,11 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient();
 
 export interface AuthRequest extends Request {
-  user?: { id: number; role: string; email: string };
+  user?: { id: number; role: string; email: string; name: string };
 }
 
 export function authenticate(req: AuthRequest, res: Response, next: NextFunction) {
@@ -14,7 +17,13 @@ export function authenticate(req: AuthRequest, res: Response, next: NextFunction
 
   const token = authHeader.split(' ')[1];
   try {
-    const payload = jwt.verify(token, process.env.JWT_SECRET!) as { id: number; role: string; email: string };
+    const payload = jwt.verify(token, process.env.JWT_SECRET!) as { id: number; role: string; email: string; name: string };
+    // Check if user is banned
+    const dbUser = await prisma.user.findUnique({ where: { id: payload.id }, select: { isBanned: true } });
+    if (dbUser?.isBanned) {
+      res.status(403).json({ error: 'Your account has been suspended.' });
+      return;
+    }
     req.user = payload;
     next();
   } catch {

@@ -82,8 +82,8 @@ export default function Profile() {
       <PageHeader title="Profile & Settings" subtitle="Manage your account information" />
 
       <div className="space-y-5">
-        {/* Profile completion card */}
-        <div className="border border-gray-100 rounded-2xl p-5 bg-white">
+        {/* Profile completion card — not shown for admins */}
+        {user?.role !== 'admin' && <div className="border border-gray-100 rounded-2xl p-5 bg-white">
           <div className="flex items-center justify-between mb-3">
             <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest"
               style={{ fontFamily: 'Syne, sans-serif' }}>
@@ -116,7 +116,7 @@ export default function Profile() {
               Profile complete!
             </div>
           )}
-        </div>
+        </div>}
 
         {/* Role card */}
         <div className="card-p flex items-center gap-4">

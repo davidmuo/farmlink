@@ -15,6 +15,7 @@ model User {
   passwordHash String
   phone        String?
   role         String    // "buyer" | "farmer" | "admin"
+  isBanned     Boolean   @default(false)
   createdAt    DateTime  @default(now())
 
   buyer            Buyer?

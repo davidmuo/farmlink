@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
-import { Users, ShoppingBag, CheckSquare, TrendingUp, ArrowRight, Activity, ChevronRight, BadgeCheck, Tag, AlertTriangle } from 'lucide-react';
+import { Users, ShoppingBag, CheckSquare, TrendingUp, ArrowRight, Activity, ChevronRight, BadgeCheck, Tag, AlertTriangle, Ban, Trash2 } from 'lucide-react';
 import { AuditLog } from '../../types';
 import Spinner from '../../components/Spinner';
 import api from '../../lib/api';
@@ -43,7 +43,7 @@ export default function AdminDashboard() {
   const [stats, setStats]         = useState<Stats | null>(null);
   const [logs, setLogs]           = useState<AuditLog[]>([]);
   const [loading, setLoading]     = useState(true);
-  const [tab, setTab]             = useState<'overview' | 'activity' | 'platform' | 'prices' | 'farmers' | 'disputes'>('overview');
+  const [tab, setTab]             = useState<'overview' | 'activity' | 'platform' | 'prices' | 'farmers' | 'disputes' | 'users'>('overview');
 
   // Market prices state
   const [marketPrices, setMarketPrices]   = useState<MarketPrice[]>([]);
@@ -55,6 +55,12 @@ export default function AdminDashboard() {
   const [farmers, setFarmers]           = useState<FarmerUser[]>([]);
   const [farmersLoading, setFarmersLoading] = useState(false);
   const [togglingVerify, setTogglingVerify] = useState<number | null>(null);
+
+  // All users state
+  const [allUsers, setAllUsers]           = useState<any[]>([]);
+  const [usersLoading, setUsersLoading]   = useState(false);
+  const [togglingBan, setTogglingBan]     = useState<number | null>(null);
+  const [deletingUser, setDeletingUser]   = useState<number | null>(null);
 
   // Disputes state
   const [disputes, setDisputes]           = useState<any[]>([]);
@@ -92,10 +98,36 @@ export default function AdminDashboard() {
     api.get('/disputes').then(r => setDisputes(r.data)).finally(() => setDisputesLoading(false));
   };
 
+  const loadAllUsers = () => {
+    setUsersLoading(true);
+    api.get('/admin/users').then(r => setAllUsers(r.data)).finally(() => setUsersLoading(false));
+  };
+
+  const toggleBan = async (user: any) => {
+    setTogglingBan(user.id);
+    try {
+      await api.patch(`/admin/users/${user.id}/ban`);
+      loadAllUsers();
+    } catch { toast.error('Failed to update user'); }
+    finally { setTogglingBan(null); }
+  };
+
+  const deleteUser = async (user: any) => {
+    if (!confirm(`Delete ${user.name}? This cannot be undone.`)) return;
+    setDeletingUser(user.id);
+    try {
+      await api.delete(`/admin/users/${user.id}`);
+      toast.success('User deleted');
+      loadAllUsers();
+    } catch { toast.error('Failed to delete user'); }
+    finally { setDeletingUser(null); }
+  };
+
   useEffect(() => {
     if (tab === 'prices') loadMarketPrices();
     if (tab === 'farmers') loadFarmers();
     if (tab === 'disputes') loadDisputes();
+    if (tab === 'users') loadAllUsers();
   }, [tab]);
 
   const handleResolveDispute = async (disputeId: number, action: 'resolved' | 'dismissed') => {
@@ -176,6 +208,7 @@ export default function AdminDashboard() {
           ['prices',   'Market Prices'],
           ['farmers',  'Farmer Verification'],
           ['disputes', 'Disputes'],
+          ['users',    'Users'],
         ] as const).map(([key, label]) => (
           <button key={key} onClick={() => setTab(key)}
             className={`pb-3 text-sm font-medium transition-colors border-b-2 -mb-px whitespace-nowrap ${
@@ -507,6 +540,65 @@ export default function AdminDashboard() {
                   )}
                 </div>
               ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── Users tab ──────────────────────────────────────── */}
+      {tab === 'users' && (
+        <div className="space-y-4">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-9 h-9 rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-center">
+              <Users size={16} className="text-gray-400" />
+            </div>
+            <div>
+              <h2 className="font-bold text-gray-900">User Management</h2>
+              <p className="text-xs text-gray-400">Ban or remove accounts from the platform</p>
+            </div>
+          </div>
+
+          {usersLoading ? <Spinner /> : (
+            <div className="border border-gray-100 rounded-2xl overflow-hidden">
+              <div className="divide-y divide-gray-50">
+                {allUsers.map(u => (
+                  <div key={u.id} className="flex items-center gap-4 px-5 py-4">
+                    <div className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center font-semibold text-gray-600 text-sm shrink-0">
+                      {u.name?.charAt(0)}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-0.5">
+                        <p className="font-semibold text-gray-900 text-sm">{u.name}</p>
+                        <span className={`text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full ${
+                          u.role === 'admin'  ? 'bg-purple-50 text-purple-600' :
+                          u.role === 'buyer'  ? 'bg-blue-50 text-blue-600' :
+                                                'bg-green-50 text-green-700'
+                        }`}>{u.role}</span>
+                        {u.isBanned && <span className="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full bg-red-50 text-red-600">Banned</span>}
+                      </div>
+                      <p className="text-xs text-gray-400">{u.email}</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => toggleBan(u)}
+                        disabled={togglingBan === u.id || u.role === 'admin'}
+                        title={u.role === 'admin' ? 'Cannot ban admins' : u.isBanned ? 'Unban user' : 'Ban user'}
+                        className={`p-2 rounded-xl transition-colors disabled:opacity-30 ${
+                          u.isBanned ? 'bg-green-50 text-green-600 hover:bg-green-100' : 'bg-red-50 text-red-500 hover:bg-red-100'
+                        }`}>
+                        <Ban size={14} />
+                      </button>
+                      <button
+                        onClick={() => deleteUser(u)}
+                        disabled={deletingUser === u.id || u.role === 'admin'}
+                        title={u.role === 'admin' ? 'Cannot delete admins' : 'Delete user'}
+                        className="p-2 rounded-xl bg-gray-50 text-gray-400 hover:bg-red-50 hover:text-red-500 transition-colors disabled:opacity-30">
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
         </div>
