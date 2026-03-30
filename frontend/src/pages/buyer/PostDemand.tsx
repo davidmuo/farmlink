@@ -58,7 +58,6 @@ export default function PostDemand() {
 
       <div className="grid lg:grid-cols-3 gap-6">
         <form onSubmit={handleSubmit} className="lg:col-span-2 card-p space-y-5">
-          {/* Crop */}
           <div className="form-group">
             <label className="label">Crop type *</label>
             <select value={form.cropId} onChange={set('cropId')} className="input" required>
@@ -73,7 +72,6 @@ export default function PostDemand() {
             )}
           </div>
 
-          {/* Quantity + Price */}
           <div className="grid grid-cols-2 gap-4">
             <div className="form-group">
               <label className="label">Quantity (kg) *</label>
@@ -87,7 +85,6 @@ export default function PostDemand() {
             </div>
           </div>
 
-          {/* Quality */}
           <div className="form-group">
             <label className="label">Quality standard</label>
             <div className="flex flex-wrap gap-2">
@@ -106,7 +103,6 @@ export default function PostDemand() {
             </div>
           </div>
 
-          {/* Delivery window */}
           <div className="form-group">
             <label className="label">Delivery window *</label>
             <div className="grid grid-cols-2 gap-4">
@@ -123,14 +119,12 @@ export default function PostDemand() {
             </div>
           </div>
 
-          {/* Notes */}
           <div className="form-group">
             <label className="label">Additional notes</label>
             <textarea value={form.notes} onChange={set('notes')} className="input resize-none" rows={3}
               placeholder="Packaging requirements, delivery address, special instructions…" />
           </div>
 
-          {/* Recurring demand */}
           <div className="form-group">
             <label className="flex items-center gap-3 cursor-pointer select-none">
               <div className="relative">
@@ -177,7 +171,6 @@ export default function PostDemand() {
           </div>
         </form>
 
-        {/* Sidebar */}
         <div className="space-y-4">
           {totalValue > 0 && (
             <div className="bg-white border border-gray-100 rounded-2xl p-5">

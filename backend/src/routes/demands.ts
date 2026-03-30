@@ -6,11 +6,9 @@ import { notifyMatchingFarmers } from '../services/sms';
 const router = Router();
 const prisma = new PrismaClient();
 
-// GET /demands — filterable; add ?mine=true for buyer's own demands
 router.get('/', async (req: AuthRequest, res: Response) => {
   const { crop, minPrice, maxPrice, status, mine, deliveryFrom, deliveryTo } = req.query;
 
-  // Authenticate optionally to support ?mine=true
   let buyerId: number | undefined;
   if (mine === 'true') {
     const authHeader = req.headers.authorization;
@@ -22,7 +20,7 @@ router.get('/', async (req: AuthRequest, res: Response) => {
           const buyer = await prisma.buyer.findUnique({ where: { userId: payload.id } });
           buyerId = buyer?.id;
         }
-      } catch { /* ignore */ }
+      } catch {}
     }
   }
 
@@ -49,7 +47,6 @@ router.get('/', async (req: AuthRequest, res: Response) => {
   res.json(demands);
 });
 
-// GET /demands/:id
 router.get('/:id', async (req: AuthRequest, res: Response) => {
   const demand = await prisma.demand.findUnique({
     where: { id: parseInt(req.params.id) },
@@ -66,7 +63,6 @@ router.get('/:id', async (req: AuthRequest, res: Response) => {
   res.json(demand);
 });
 
-// POST /demands — buyer only
 router.post('/', authenticate, requireRole('buyer'), async (req: AuthRequest, res: Response) => {
   const { cropId, quantity, pricePerUnit, qualityStandard, deliveryStart, deliveryEnd, notes, isRecurring, recurrenceNote } = req.body;
 
@@ -98,10 +94,8 @@ router.post('/', authenticate, requireRole('buyer'), async (req: AuthRequest, re
     data: { userId: req.user!.id, action: 'CREATE_DEMAND', details: `Posted demand for ${demand.crop.cropName} (${demand.quantity}kg @ ₦${demand.pricePerUnit}/kg)` },
   });
 
-  // Fire-and-forget SMS alerts to matching farmers
-  notifyMatchingFarmers(demand.id).catch(err => console.error('[SMS] Notify failed:', err));
+  notifyMatchingFarmers(demand.id).catch(err => console.error(err));
 
-  // Fire-and-forget in-app notifications to matching farmers
   (async () => {
     try {
       const cropName = demand.crop.cropName;
@@ -133,14 +127,13 @@ router.post('/', authenticate, requireRole('buyer'), async (req: AuthRequest, re
         });
       }
     } catch (err) {
-      console.error('[Demands] Crop match notifications failed:', err);
+      console.error(err);
     }
   })();
 
   res.status(201).json(demand);
 });
 
-// PATCH /demands/:id
 router.patch('/:id', authenticate, requireRole('buyer', 'admin'), async (req: AuthRequest, res: Response) => {
   const buyer = await prisma.buyer.findUnique({ where: { userId: req.user!.id } });
   const demand = await prisma.demand.findUnique({ where: { id: parseInt(req.params.id) } });
@@ -169,7 +162,6 @@ router.patch('/:id', authenticate, requireRole('buyer', 'admin'), async (req: Au
   res.json(updated);
 });
 
-// DELETE /demands/:id
 router.delete('/:id', authenticate, requireRole('buyer', 'admin'), async (req: AuthRequest, res: Response) => {
   const buyer = await prisma.buyer.findUnique({ where: { userId: req.user!.id } });
   const demand = await prisma.demand.findUnique({ where: { id: parseInt(req.params.id) } });

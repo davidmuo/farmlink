@@ -5,7 +5,6 @@ import { authenticate, AuthRequest } from '../middleware/auth';
 const router = Router();
 const prisma = new PrismaClient();
 
-// GET /messages/:commitmentId — get all messages for a commitment
 router.get('/:commitmentId', authenticate, async (req: AuthRequest, res: Response) => {
   try {
     const commitmentId = parseInt(req.params.commitmentId);
@@ -42,12 +41,11 @@ router.get('/:commitmentId', authenticate, async (req: AuthRequest, res: Respons
 
     res.json(messages);
   } catch (err) {
-    console.error('[Messages] GET error:', err);
+    console.error(err);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
 
-// POST /messages/:commitmentId — send a message
 router.post('/:commitmentId', authenticate, async (req: AuthRequest, res: Response) => {
   const { content } = req.body;
 
@@ -92,7 +90,6 @@ router.post('/:commitmentId', authenticate, async (req: AuthRequest, res: Respon
       },
     });
 
-    // Notify the other party
     const recipientUserId = userId === farmerUserId ? buyerUserId : farmerUserId;
     const senderName = req.user!.role === 'farmer'
       ? commitment.farmer.user.name
@@ -110,7 +107,7 @@ router.post('/:commitmentId', authenticate, async (req: AuthRequest, res: Respon
 
     res.status(201).json(message);
   } catch (err) {
-    console.error('[Messages] POST error:', err);
+    console.error(err);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

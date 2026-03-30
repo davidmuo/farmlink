@@ -5,7 +5,6 @@ import { authenticate, requireRole, AuthRequest } from '../middleware/auth';
 const router = Router();
 const prisma = new PrismaClient();
 
-// GET /market-prices — get all market prices with crop info
 router.get('/', async (_req: AuthRequest, res: Response) => {
   try {
     const prices = await prisma.marketPrice.findMany({
@@ -17,12 +16,11 @@ router.get('/', async (_req: AuthRequest, res: Response) => {
 
     res.json(prices);
   } catch (err) {
-    console.error('[MarketPrices] GET error:', err);
+    console.error(err);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
 
-// PUT /market-prices/:cropId — admin only, set or update market price
 router.put('/:cropId', authenticate, requireRole('admin'), async (req: AuthRequest, res: Response) => {
   const { priceMin, priceMax, unit } = req.body;
 
@@ -62,7 +60,7 @@ router.put('/:cropId', authenticate, requireRole('admin'), async (req: AuthReque
 
     res.json(price);
   } catch (err) {
-    console.error('[MarketPrices] PUT error:', err);
+    console.error(err);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

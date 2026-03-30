@@ -54,7 +54,6 @@ export default function FarmerDashboard() {
     <div style={{ fontFamily: "'Inter', sans-serif" }}>
 
 
-      {/* Tabs */}
       <div className="flex gap-6 border-b border-gray-200 mb-8">
         {([['overview', 'Overview'], ['commitments', 'My Commitments'], ['profile', 'Farm Profile']] as const).map(([key, label]) => (
           <button key={key} onClick={() => setTab(key)}
@@ -71,7 +70,6 @@ export default function FarmerDashboard() {
         ))}
       </div>
 
-      {/* Stats row */}
       <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-y md:divide-y-0 divide-gray-100 border border-gray-100 rounded-2xl bg-white mb-8 overflow-hidden">
         {[
           { label: 'Confirmed earnings', value: fmt(earnings),                    sub: `${accepted.length} accepted`,  green: true  },
@@ -89,11 +87,9 @@ export default function FarmerDashboard() {
         ))}
       </div>
 
-      {/* Overview tab */}
       {tab === 'overview' && (
         <div className="space-y-5">
 
-          {/* Chart */}
           <div className="bg-white border border-gray-100 rounded-2xl p-6">
             <div className="flex items-start justify-between mb-5">
               <div>
@@ -119,7 +115,6 @@ export default function FarmerDashboard() {
             <TrendChart data={earningsSeries} height={160} showGrid color={GREEN} />
           </div>
 
-          {/* Commitments list */}
           <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden">
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-50">
               <div>
@@ -171,7 +166,6 @@ export default function FarmerDashboard() {
             )}
           </div>
 
-          {/* Crops */}
           {cropsGrown.length > 0 && (
             <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden">
               <div className="px-6 py-4 border-b border-gray-50 flex items-center justify-between">
@@ -194,7 +188,6 @@ export default function FarmerDashboard() {
         </div>
       )}
 
-      {/* Commitments tab */}
       {tab === 'commitments' && (
         <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-50">
@@ -236,7 +229,6 @@ export default function FarmerDashboard() {
         </div>
       )}
 
-      {/* Profile tab */}
       {tab === 'profile' && (
         <div className="space-y-4">
           <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden">

@@ -5,7 +5,6 @@ import { authenticate, requireRole, AuthRequest } from '../middleware/auth';
 const router = Router();
 const prisma = new PrismaClient();
 
-// GET /admin/users
 router.get('/users', authenticate, requireRole('admin'), async (_req: AuthRequest, res: Response) => {
   const users = await prisma.user.findMany({
     include: { buyer: true, farmer: true, admin: true },
@@ -14,7 +13,6 @@ router.get('/users', authenticate, requireRole('admin'), async (_req: AuthReques
   res.json(users.map(u => ({ ...u, passwordHash: undefined })));
 });
 
-// PATCH /admin/users/:id — update role or status
 router.patch('/users/:id', authenticate, requireRole('admin'), async (req: AuthRequest, res: Response) => {
   const { name, phone } = req.body;
   const user = await prisma.user.update({
@@ -25,7 +23,6 @@ router.patch('/users/:id', authenticate, requireRole('admin'), async (req: AuthR
   res.json({ ...user, passwordHash: undefined });
 });
 
-// GET /admin/audit-logs
 router.get('/audit-logs', authenticate, requireRole('admin'), async (_req: AuthRequest, res: Response) => {
   const logs = await prisma.auditLog.findMany({
     include: { user: { select: { name: true, email: true, role: true } } },
@@ -35,7 +32,6 @@ router.get('/audit-logs', authenticate, requireRole('admin'), async (_req: AuthR
   res.json(logs);
 });
 
-// GET /admin/stats
 router.get('/stats', authenticate, requireRole('admin'), async (_req: AuthRequest, res: Response) => {
   const [totalUsers, totalDemands, totalCommitments, openDemands] = await Promise.all([
     prisma.user.count(),
@@ -46,7 +42,6 @@ router.get('/stats', authenticate, requireRole('admin'), async (_req: AuthReques
   res.json({ totalUsers, totalDemands, totalCommitments, openDemands });
 });
 
-// PATCH /admin/users/:id/ban — toggle ban status
 router.patch('/users/:id/ban', authenticate, requireRole('admin'), async (req: AuthRequest, res: Response) => {
   const userId = parseInt(req.params.id);
   if (userId === req.user!.id) { res.status(400).json({ error: 'Cannot ban yourself' }); return; }
@@ -62,7 +57,6 @@ router.patch('/users/:id/ban', authenticate, requireRole('admin'), async (req: A
   res.json({ ...updated, passwordHash: undefined });
 });
 
-// DELETE /admin/users/:id
 router.delete('/users/:id', authenticate, requireRole('admin'), async (req: AuthRequest, res: Response) => {
   const userId = parseInt(req.params.id);
   if (userId === req.user!.id) { res.status(400).json({ error: 'Cannot delete yourself' }); return; }
@@ -75,7 +69,6 @@ router.delete('/users/:id', authenticate, requireRole('admin'), async (req: Auth
   res.json({ ok: true });
 });
 
-// PATCH /admin/farmers/:id/verify — toggle farmer isVerified
 router.patch('/farmers/:id/verify', authenticate, requireRole('admin'), async (req: AuthRequest, res: Response) => {
   try {
     const farmerId = parseInt(req.params.id);
@@ -96,7 +89,6 @@ router.patch('/farmers/:id/verify', authenticate, requireRole('admin'), async (r
       include: { user: { select: { id: true, name: true, email: true } } },
     });
 
-    // Notify the farmer
     const statusText = updated.isVerified ? 'verified' : 'unverified';
     await prisma.notification.create({
       data: {
@@ -120,7 +112,7 @@ router.patch('/farmers/:id/verify', authenticate, requireRole('admin'), async (r
 
     res.json(updated);
   } catch (err) {
-    console.error('[Admin] PATCH farmers verify error:', err);
+    console.error(err);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

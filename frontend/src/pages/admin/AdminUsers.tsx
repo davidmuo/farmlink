@@ -40,7 +40,6 @@ export default function AdminUsers() {
     <div>
       <PageHeader title="Users" subtitle={`${users.length} registered users on the platform`} />
 
-      {/* Filters */}
       <div className="flex flex-wrap gap-3 mb-5">
         <div className="relative flex-1 min-w-48">
           <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />

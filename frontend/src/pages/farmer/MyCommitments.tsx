@@ -105,7 +105,6 @@ export default function MyCommitments() {
     <div>
       <PageHeader title="My Commitments" subtitle="Track your supply commitments to buyers" />
 
-      {/* Earnings summary */}
       {totalEarnings > 0 && (
         <div className="border border-gray-100 rounded-2xl px-5 py-4 mb-6 flex items-center justify-between">
           <div>
@@ -116,7 +115,6 @@ export default function MyCommitments() {
         </div>
       )}
 
-      {/* Filter tabs */}
       <div className="flex gap-1.5 mb-5 flex-wrap">
         {Object.entries(counts).map(([key, count]) => (
           <button key={key} onClick={() => setFilter(key)}
@@ -186,7 +184,6 @@ export default function MyCommitments() {
                     </div>
                   </div>
 
-                  {/* Delivery status section for accepted commitments */}
                   {isAccepted && (
                     <div className="mt-3 flex flex-col gap-2 pl-[52px]">
                       <div className="flex items-center gap-3">

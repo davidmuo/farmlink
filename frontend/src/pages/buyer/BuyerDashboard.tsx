@@ -59,7 +59,6 @@ export default function BuyerDashboard() {
     <div style={{ fontFamily: "'Inter', sans-serif" }}>
 
 
-      {/* Tabs */}
       <div className="flex items-center gap-6 border-b border-gray-200 mb-8">
         {([['overview', 'Overview'], ['demands', 'My Demands'], ['offers', 'Farmer Offers']] as const).map(([key, label]) => (
           <button key={key} onClick={() => setTab(key)}
@@ -86,7 +85,6 @@ export default function BuyerDashboard() {
         </div>
       </div>
 
-      {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-y md:divide-y-0 divide-gray-100 border border-gray-100 rounded-2xl bg-white mb-8 overflow-hidden">
         {[
           { label: 'Open demands',    value: open,                green: false, sub: 'awaiting supply'    },
@@ -104,7 +102,6 @@ export default function BuyerDashboard() {
         ))}
       </div>
 
-      {/* Pending alert */}
       {pending > 0 && tab === 'overview' && (
         <div className="flex items-center justify-between border border-gray-100 bg-white rounded-2xl px-5 py-4 mb-6">
           <div>
@@ -121,11 +118,9 @@ export default function BuyerDashboard() {
         </div>
       )}
 
-      {/* Overview tab */}
       {tab === 'overview' && (
         <div className="space-y-5">
 
-          {/* Chart */}
           <div className="bg-white border border-gray-100 rounded-2xl p-6">
             <div className="flex items-start justify-between mb-5">
               <div>
@@ -151,7 +146,6 @@ export default function BuyerDashboard() {
             <TrendChart data={valueSeries} height={160} showGrid color={GREEN} />
           </div>
 
-          {/* Demand pipeline */}
           <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden">
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-50">
               <div>
@@ -207,7 +201,6 @@ export default function BuyerDashboard() {
             )}
           </div>
 
-          {/* Recent offers */}
           {commitments.length > 0 && (
             <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden">
               <div className="flex items-center justify-between px-6 py-4 border-b border-gray-50">
@@ -248,7 +241,6 @@ export default function BuyerDashboard() {
         </div>
       )}
 
-      {/* Demands tab */}
       {tab === 'demands' && (
         <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden">
           <div className="flex items-center justify-between px-6 py-4 border-b border-gray-50">
@@ -303,7 +295,6 @@ export default function BuyerDashboard() {
         </div>
       )}
 
-      {/* Offers tab */}
       {tab === 'offers' && (
         <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-50">

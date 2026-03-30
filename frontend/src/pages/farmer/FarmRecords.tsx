@@ -68,7 +68,6 @@ export default function FarmRecords() {
         }
       />
 
-      {/* Summary */}
       {records.length > 0 && (
         <div className="grid sm:grid-cols-3 gap-4 mb-6">
           <div className="card-p">
@@ -90,7 +89,6 @@ export default function FarmRecords() {
         </div>
       )}
 
-      {/* Add form */}
       {showForm && (
         <div className="card-p mb-6 border-2 border-gray-200 animate-slide-up">
           <h3 className="font-semibold text-gray-900 mb-4">New Farm Record</h3>

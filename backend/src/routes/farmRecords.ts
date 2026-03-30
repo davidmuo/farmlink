@@ -5,7 +5,6 @@ import { authenticate, requireRole, AuthRequest } from '../middleware/auth';
 const router = Router();
 const prisma = new PrismaClient();
 
-// GET /farm-records — farmer's own records
 router.get('/', authenticate, requireRole('farmer'), async (req: AuthRequest, res: Response) => {
   const farmer = await prisma.farmer.findUnique({ where: { userId: req.user!.id } });
   if (!farmer) { res.status(404).json({ error: 'Farmer not found' }); return; }
@@ -18,7 +17,6 @@ router.get('/', authenticate, requireRole('farmer'), async (req: AuthRequest, re
   res.json(records);
 });
 
-// POST /farm-records
 router.post('/', authenticate, requireRole('farmer'), async (req: AuthRequest, res: Response) => {
   const { cropId, plantingDate, areaPlanted, notes } = req.body;
   if (!cropId || !plantingDate || !areaPlanted) {
@@ -47,7 +45,6 @@ router.post('/', authenticate, requireRole('farmer'), async (req: AuthRequest, r
   res.status(201).json(record);
 });
 
-// DELETE /farm-records/:id
 router.delete('/:id', authenticate, requireRole('farmer'), async (req: AuthRequest, res: Response) => {
   const farmer = await prisma.farmer.findUnique({ where: { userId: req.user!.id } });
   const record = await prisma.farmRecord.findUnique({ where: { id: parseInt(req.params.id) } });

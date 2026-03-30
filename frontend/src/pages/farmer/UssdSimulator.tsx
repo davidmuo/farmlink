@@ -100,7 +100,6 @@ export default function UssdSimulator() {
       </div>
 
       <div className="grid lg:grid-cols-2 gap-8 items-start">
-        {/* Phone */}
         <div className="flex justify-center">
           <div className="w-[280px]">
             <div className="bg-gray-900 rounded-[2.5rem] p-4"
@@ -110,7 +109,6 @@ export default function UssdSimulator() {
                 <div className="w-16 h-1.5 bg-gray-700 rounded-full" />
               </div>
 
-              {/* Screen */}
               <div className="bg-gray-950 rounded-2xl overflow-hidden mb-3 border border-gray-800">
                 <div className="flex items-center justify-between px-3 py-1.5 bg-gray-900/80">
                   <span className="text-[9px] text-gray-500 font-medium">MTN Nigeria</span>
@@ -138,7 +136,6 @@ export default function UssdSimulator() {
                   )}
                 </div>
 
-                {/* Input bar */}
                 <div className="px-3 py-2 bg-gray-900 border-t border-gray-800 min-h-[32px] flex items-center">
                   {phase === 'idle' ? (
                     <span className="font-mono text-green-400 text-sm tracking-widest">
@@ -153,7 +150,6 @@ export default function UssdSimulator() {
                 </div>
               </div>
 
-              {/* Call / End */}
               <div className="grid grid-cols-2 gap-2 mb-3">
                 <button onClick={handleCall} disabled={!isCallable || loading}
                   className="flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-bold transition-all disabled:opacity-30"
@@ -167,7 +163,6 @@ export default function UssdSimulator() {
                 </button>
               </div>
 
-              {/* Keypad */}
               <div className="space-y-2">
                 {KEYS.map((row, ri) => (
                   <div key={ri} className="grid grid-cols-3 gap-2">
@@ -203,7 +198,6 @@ export default function UssdSimulator() {
           </div>
         </div>
 
-        {/* Guide */}
         <div className="space-y-4">
           <div className="card-p">
             <h3 className="font-semibold text-gray-900 mb-3">How to use</h3>

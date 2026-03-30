@@ -4,8 +4,6 @@ import { PrismaClient } from '@prisma/client';
 const router = Router();
 const prisma = new PrismaClient();
 
-// POST /ussd — Africa's Talking / standard USSD gateway format
-// Body: sessionId, serviceCode, phoneNumber, text (cumulative, *-separated)
 router.post('/', async (req: Request, res: Response) => {
   res.set('Content-Type', 'text/plain');
 
@@ -43,7 +41,6 @@ ${user.farmer.farmLocation}
 
   if (L0 === '0') return res.send('END Thank you for using FarmLink!\nDial *384*1# anytime.');
 
-  // ── 1: Matching demands ──────────────────────────────────
   if (L0 === '1') {
     const demands = await prisma.demand.findMany({
       where: { status: { in: ['open', 'partially_filled'] }, crop: { cropName: { in: crops } } },
@@ -175,7 +172,6 @@ FarmLink - Connecting Farmers`);
     }
   }
 
-  // ── 2: My commitments ────────────────────────────────────
   if (L0 === '2') {
     const commitments = await prisma.commitment.findMany({
       where: { farmerId: user.farmer.id },
@@ -216,7 +212,6 @@ Date: ${dt}
 FarmLink - Lagos, Nigeria`);
   }
 
-  // ── 3: Profile ───────────────────────────────────────────
   if (L0 === '3') {
     return res.send(`END MY PROFILE
 Name: ${user.name}

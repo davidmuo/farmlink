@@ -19,7 +19,6 @@ Keep responses practical, concise, and relevant to West African farming conditio
 Use simple language. Suggest treatments and inputs available locally in Nigeria.
 Always be encouraging and supportive.`;
 
-// POST /ai/chat
 router.post('/chat', authenticate, async (req: AuthRequest, res: Response) => {
   const { message } = req.body;
 
@@ -41,7 +40,7 @@ router.post('/chat', authenticate, async (req: AuthRequest, res: Response) => {
     const text = completion.choices[0]?.message?.content ?? 'No response.';
     res.json({ reply: text });
   } catch (err: any) {
-    console.error('[AI] Groq error:', err?.message);
+    console.error(err?.message);
     res.status(500).json({ error: 'AI assistant unavailable. Please try again.' });
   }
 });

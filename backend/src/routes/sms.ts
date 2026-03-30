@@ -1,11 +1,3 @@
-/**
- * SMS routes:
- *   POST /sms/incoming  — Africa's Talking webhook for farmer SMS replies
- *   POST /sms/simulate  — Dev/demo tool: simulate a farmer SMS reply in-browser
- *   GET  /sms/logs      — Admin: view all SMS history
- *   GET  /sms/inbox/:phone — Farmer: view their own SMS messages
- */
-
 import { Router, Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { authenticate, requireRole, AuthRequest } from '../middleware/auth';
@@ -14,12 +6,6 @@ import { sendSms } from '../services/sms';
 const router = Router();
 const prisma = new PrismaClient();
 
-// ── Parse incoming SMS text ──────────────────────────────────────────────────
-// Formats:
-//   "ACCEPT FL15"        → full commitment to demand 15
-//   "ACCEPT FL15 200"    → 200 kg partial commitment to demand 15
-//   "CANCEL FL15"        → cancel existing commitment
-//   "STATUS"             → list farmer's active commitments
 async function processIncomingSms(from: string, text: string): Promise<string> {
   const raw = text.trim().toUpperCase().replace(/\s+/g, ' ');
 
@@ -32,7 +18,6 @@ async function processIncomingSms(from: string, text: string): Promise<string> {
     return 'You are not registered as a FarmLink farmer. Visit farmlink.ng to sign up.';
   }
 
-  // STATUS
   if (raw === 'STATUS' || raw === 'MYORDERS') {
     const commitments = await prisma.commitment.findMany({
       where: { farmerId: user.farmer.id, status: { notIn: ['cancelled'] } },
@@ -49,7 +34,6 @@ async function processIncomingSms(from: string, text: string): Promise<string> {
     return `FarmLink: Your commitments: ${lines}. Dial *384*1# for details.`;
   }
 
-  // ACCEPT FL{id} [qty]
   const acceptMatch = raw.match(/^ACCEPT\s+FL(\d+)(?:\s+(\d+(?:\.\d+)?))?$/);
   if (acceptMatch) {
     const demandId = parseInt(acceptMatch[1]);
@@ -69,7 +53,6 @@ async function processIncomingSms(from: string, text: string): Promise<string> {
       return `FarmLink: Demand FL${demandId} is no longer accepting offers.`;
     }
 
-    // Check already committed
     const existing = await prisma.commitment.findFirst({
       where: { farmerId: user.farmer.id, demandId, status: { notIn: ['cancelled', 'rejected'] } },
     });
@@ -105,7 +88,6 @@ async function processIncomingSms(from: string, text: string): Promise<string> {
       },
     });
 
-    // Log inbound SMS
     await prisma.smsLog.create({
       data: {
         direction:   'inbound',
@@ -125,7 +107,6 @@ async function processIncomingSms(from: string, text: string): Promise<string> {
     );
   }
 
-  // CANCEL FL{id}
   const cancelMatch = raw.match(/^CANCEL\s+FL(\d+)$/);
   if (cancelMatch) {
     const demandId = parseInt(cancelMatch[1]);
@@ -143,7 +124,6 @@ async function processIncomingSms(from: string, text: string): Promise<string> {
     return `FarmLink: Commitment for FL${demandId} (${commitment.demand?.crop?.cropName}) cancelled. - FarmLink`;
   }
 
-  // HELP fallback
   return (
     `FarmLink SMS Help:\n` +
     `ACCEPT FL{id} - commit full amount\n` +
@@ -154,23 +134,18 @@ async function processIncomingSms(from: string, text: string): Promise<string> {
   );
 }
 
-// ── POST /sms/incoming — Africa's Talking webhook ────────────────────────────
 router.post('/incoming', async (req: Request, res: Response) => {
   const { from, text } = req.body as { from: string; to?: string; text: string };
   if (!from || !text) { res.sendStatus(400); return; }
 
   const reply = await processIncomingSms(from, text);
 
-  // Africa's Talking expects a plain-text reply to send back as SMS
   res.set('Content-Type', 'text/plain');
   res.send(reply);
 
-  // Also log the outbound confirmation
   await sendSms({ to: from, message: reply }).catch(() => {});
 });
 
-// ── POST /sms/simulate — browser-based demo tool ─────────────────────────────
-// Lets the frontend simulate a farmer sending an SMS reply without a real phone
 router.post('/simulate', authenticate, async (req: AuthRequest, res: Response) => {
   const { text } = req.body as { text: string };
   if (!text) { res.status(400).json({ error: 'text required' }); return; }
@@ -180,7 +155,6 @@ router.post('/simulate', authenticate, async (req: AuthRequest, res: Response) =
 
   const reply = await processIncomingSms(user.phone, text);
 
-  // Log the simulated inbound
   await prisma.smsLog.create({
     data: { direction: 'inbound', phoneNumber: user.phone, farmerName: user.name, message: text, status: 'processed' },
   }).catch(() => {});
@@ -188,7 +162,6 @@ router.post('/simulate', authenticate, async (req: AuthRequest, res: Response) =
   res.json({ reply });
 });
 
-// ── GET /sms/logs — admin: all SMS traffic ───────────────────────────────────
 router.get('/logs', authenticate, requireRole('admin'), async (_req: Request, res: Response) => {
   const logs = await prisma.smsLog.findMany({
     orderBy: { createdAt: 'desc' },
@@ -197,7 +170,6 @@ router.get('/logs', authenticate, requireRole('admin'), async (_req: Request, re
   res.json(logs);
 });
 
-// ── GET /sms/inbox — farmer: their own SMS messages ──────────────────────────
 router.get('/inbox', authenticate, async (req: AuthRequest, res: Response) => {
   const user = await prisma.user.findUnique({ where: { id: req.user!.id } });
   if (!user?.phone) { res.json([]); return; }

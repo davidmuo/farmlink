@@ -67,7 +67,6 @@ export default function BrowseDemands() {
     <div>
       <PageHeader title="Browse Demands" subtitle="Find buyers looking for produce you grow" />
 
-      {/* Market Price Ticker */}
       {marketPrices.length > 0 && (
         <div className="mb-5">
           <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-2"
@@ -86,7 +85,6 @@ export default function BrowseDemands() {
         </div>
       )}
 
-      {/* Search + filter bar */}
       <div className="flex gap-3 mb-5">
         <div className="relative flex-1">
           <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />

@@ -6,7 +6,6 @@ import { emailCommitmentReceived, emailCommitmentAccepted, emailCommitmentReject
 const router = Router();
 const prisma = new PrismaClient();
 
-// POST /commitments — farmer commits to a demand
 router.post('/', authenticate, requireRole('farmer'), async (req: AuthRequest, res: Response) => {
   const { demandId, committedQuantity, commitmentType } = req.body;
 
@@ -25,7 +24,6 @@ router.post('/', authenticate, requireRole('farmer'), async (req: AuthRequest, r
   if (!demand) { res.status(404).json({ error: 'Demand not found' }); return; }
   if (demand.status === 'closed') { res.status(400).json({ error: 'Demand is closed' }); return; }
 
-  // Check farmer hasn't already committed to this demand
   const existing = await prisma.commitment.findFirst({
     where: { farmerId: farmer.id, demandId: demand.id, status: { not: 'cancelled' } },
   });
@@ -43,7 +41,6 @@ router.post('/', authenticate, requireRole('farmer'), async (req: AuthRequest, r
     },
   });
 
-  // Log to audit trail
   await prisma.auditLog.create({
     data: {
       userId: req.user!.id,
@@ -52,7 +49,6 @@ router.post('/', authenticate, requireRole('farmer'), async (req: AuthRequest, r
     },
   });
 
-  // Email buyer
   const buyer = commitment.demand.buyer;
   emailCommitmentReceived({
     buyerEmail: buyer.user.email,
@@ -69,7 +65,6 @@ router.post('/', authenticate, requireRole('farmer'), async (req: AuthRequest, r
   });
 });
 
-// GET /commitments — farmer sees their own, buyer sees commitments on their demands
 router.get('/', authenticate, async (req: AuthRequest, res: Response) => {
   const { role, id: userId } = req.user!;
 
@@ -115,7 +110,6 @@ router.get('/', authenticate, async (req: AuthRequest, res: Response) => {
   res.status(403).json({ error: 'Access denied' });
 });
 
-// PATCH /commitments/:id/status — buyer accepts/rejects
 router.patch('/:id/status', authenticate, requireRole('buyer', 'admin'), async (req: AuthRequest, res: Response) => {
   const { status } = req.body;
   if (!['accepted', 'rejected'].includes(status)) {
@@ -149,7 +143,6 @@ router.patch('/:id/status', authenticate, requireRole('buyer', 'admin'), async (
     data: { userId: req.user!.id, action: 'UPDATE_COMMITMENT', details: `Commitment #${commitment.id} set to ${status}` },
   });
 
-  // Email farmer
   const farmerUser = commitment.farmer.user;
   if (status === 'accepted') {
     emailCommitmentAccepted({
@@ -172,7 +165,6 @@ router.patch('/:id/status', authenticate, requireRole('buyer', 'admin'), async (
   res.json(updated);
 });
 
-// PATCH /commitments/:id/cancel — farmer cancels their own commitment
 router.patch('/:id/cancel', authenticate, requireRole('farmer'), async (req: AuthRequest, res: Response) => {
   const farmer = await prisma.farmer.findUnique({ where: { userId: req.user!.id } });
   const commitment = await prisma.commitment.findUnique({ where: { id: parseInt(req.params.id) } });
@@ -189,8 +181,6 @@ router.patch('/:id/cancel', authenticate, requireRole('farmer'), async (req: Aut
   res.json(updated);
 });
 
-// PATCH /commitments/:id/delivery — update delivery status
-// Transitions: pending → in_transit (farmer only), in_transit → delivered (either party), delivered → completed (buyer confirms)
 router.patch('/:id/delivery', authenticate, async (req: AuthRequest, res: Response) => {
   const { deliveryStatus } = req.body;
   const validStatuses = ['in_transit', 'delivered', 'completed'];
@@ -223,7 +213,6 @@ router.patch('/:id/delivery', authenticate, async (req: AuthRequest, res: Respon
 
     const current = commitment.deliveryStatus;
 
-    // Validate transitions
     if (deliveryStatus === 'in_transit') {
       if (current !== 'pending') {
         res.status(400).json({ error: `Cannot transition from '${current}' to 'in_transit'` }); return;
@@ -249,7 +238,6 @@ router.patch('/:id/delivery', authenticate, async (req: AuthRequest, res: Respon
       data: { deliveryStatus },
     });
 
-    // Notify the other party
     const recipientUserId = userId === farmerUserId ? buyerUserId : farmerUserId;
     const statusLabels: Record<string, string> = {
       in_transit: 'In Transit',
@@ -277,7 +265,7 @@ router.patch('/:id/delivery', authenticate, async (req: AuthRequest, res: Respon
 
     res.json(updated);
   } catch (err) {
-    console.error('[Commitments] PATCH delivery error:', err);
+    console.error(err);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

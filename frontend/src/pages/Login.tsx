@@ -58,7 +58,6 @@ export default function Login() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col" style={{ fontFamily: "'Inter', sans-serif" }}>
-      {/* Logo top-left */}
       <div className="px-8 py-6">
         <Link to="/">
           <span style={{ fontFamily: "'Syne', sans-serif" }} className="text-base font-bold text-gray-900 tracking-tight">
@@ -67,7 +66,6 @@ export default function Login() {
         </Link>
       </div>
 
-      {/* Centered form */}
       <div className="flex-1 flex flex-col items-center justify-center px-4 pb-16">
         <div className="w-full max-w-[360px]">
           <h1 className="text-2xl font-bold text-gray-900 tracking-tight mb-1 text-center">Sign in</h1>
@@ -103,7 +101,6 @@ export default function Login() {
             <Link to="/register" className="font-semibold text-gray-900 hover:text-gray-700">Create one</Link>
           </p>
 
-          {/* Demo accounts */}
           <div className="mt-8 bg-white border border-gray-200 rounded-2xl overflow-hidden">
             <button type="button" onClick={() => setDemoOpen(o => !o)}
               className="w-full flex items-center justify-between px-4 py-3.5 text-left hover:bg-gray-50 transition-colors">
@@ -147,7 +144,6 @@ export default function Login() {
         </div>
       </div>
 
-      {/* Footer */}
       <div className="text-center pb-8">
         <p className="text-[11px] text-gray-400">
           <Link to="/terms" className="hover:text-gray-700 transition-colors">Terms of service</Link>

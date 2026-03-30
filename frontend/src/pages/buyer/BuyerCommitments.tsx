@@ -78,7 +78,6 @@ export default function BuyerCommitments() {
     <div>
       <PageHeader title="Farmer Offers" subtitle="Review and manage supply offers from farmers" />
 
-      {/* Filter tabs */}
       <div className="flex gap-1.5 mb-6 flex-wrap">
         {[
           { key: 'pending',  label: 'Pending',  count: counts.pending  },
@@ -157,7 +156,6 @@ export default function BuyerCommitments() {
                     )}
                   </div>
 
-                  {/* Delivery status section for accepted commitments */}
                   {isAccepted && (
                     <div className="mt-3 flex items-center gap-3 pl-[52px] flex-wrap">
                       <DeliveryBadge status={deliveryStatus} />

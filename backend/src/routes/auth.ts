@@ -6,7 +6,6 @@ import { PrismaClient } from '@prisma/client';
 const router = Router();
 const prisma = new PrismaClient();
 
-// POST /auth/register
 router.post('/register', async (req: Request, res: Response) => {
   const { name, email, password, phone, role, businessName, businessType, farmLocation, farmSize, cropsGrown } = req.body;
 
@@ -58,7 +57,6 @@ router.post('/register', async (req: Request, res: Response) => {
   });
 });
 
-// POST /auth/login
 router.post('/login', async (req: Request, res: Response) => {
   const { email, password } = req.body;
   if (!email || !password) {
@@ -84,7 +82,6 @@ router.post('/login', async (req: Request, res: Response) => {
   });
 });
 
-// PATCH /auth/profile — update own name/phone
 router.patch('/profile', async (req: Request, res: Response) => {
   const authHeader = req.headers.authorization;
   if (!authHeader?.startsWith('Bearer ')) { res.status(401).json({ error: 'No token' }); return; }
@@ -103,7 +100,6 @@ router.patch('/profile', async (req: Request, res: Response) => {
   }
 });
 
-// GET /auth/me
 router.get('/me', async (req: Request, res: Response) => {
   const authHeader = req.headers.authorization;
   if (!authHeader?.startsWith('Bearer ')) { res.status(401).json({ error: 'No token' }); return; }

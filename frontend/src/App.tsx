@@ -12,7 +12,6 @@ import Reviews from './pages/Reviews';
 import Terms from './pages/Terms';
 import Privacy from './pages/Privacy';
 
-// Buyer
 import BuyerDashboard from './pages/buyer/BuyerDashboard';
 import PostDemand from './pages/buyer/PostDemand';
 import MyDemands from './pages/buyer/MyDemands';
@@ -20,7 +19,6 @@ import DemandDetail from './pages/buyer/DemandDetail';
 import BuyerCommitments from './pages/buyer/BuyerCommitments';
 import BuyerMessages from './pages/buyer/BuyerMessages';
 
-// Farmer
 import FarmerDashboard from './pages/farmer/FarmerDashboard';
 import BrowseDemands from './pages/farmer/BrowseDemands';
 import FarmerDemandDetail from './pages/farmer/FarmerDemandDetail';
@@ -30,7 +28,6 @@ import SmsInbox from './pages/farmer/SmsInbox';
 import UssdSimulator from './pages/farmer/UssdSimulator';
 import FarmerMessages from './pages/farmer/FarmerMessages';
 
-// Admin
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminUsers from './pages/admin/AdminUsers';
 import AuditLogs from './pages/admin/AuditLogs';
@@ -41,21 +38,18 @@ function AppShell() {
 
   return (
     <Routes>
-      {/* Public routes — no sidebar, no navbar */}
       <Route path="/" element={<Home />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/terms" element={<Terms />} />
       <Route path="/privacy" element={<Privacy />} />
 
-      {/* Protected routes — wrapped in DashboardLayout */}
       <Route path="*" element={
         !user ? <Navigate to="/login" replace /> : (
           <DashboardLayout>
             <Routes>
               <Route path="/profile" element={<Profile />} />
 
-              {/* Buyer */}
               <Route path="/buyer" element={<ProtectedRoute role="buyer"><BuyerDashboard /></ProtectedRoute>} />
               <Route path="/buyer/demands" element={<ProtectedRoute role="buyer"><MyDemands /></ProtectedRoute>} />
               <Route path="/buyer/demands/new" element={<ProtectedRoute role="buyer"><PostDemand /></ProtectedRoute>} />
@@ -64,7 +58,6 @@ function AppShell() {
               <Route path="/buyer/messages" element={<ProtectedRoute role="buyer"><BuyerMessages /></ProtectedRoute>} />
               <Route path="/buyer/reviews" element={<ProtectedRoute role="buyer"><Reviews /></ProtectedRoute>} />
 
-              {/* Farmer */}
               <Route path="/farmer" element={<ProtectedRoute role="farmer"><FarmerDashboard /></ProtectedRoute>} />
               <Route path="/farmer/demands" element={<ProtectedRoute role="farmer"><BrowseDemands /></ProtectedRoute>} />
               <Route path="/farmer/demands/:id" element={<ProtectedRoute role="farmer"><FarmerDemandDetail /></ProtectedRoute>} />
@@ -75,7 +68,6 @@ function AppShell() {
               <Route path="/farmer/messages" element={<ProtectedRoute role="farmer"><FarmerMessages /></ProtectedRoute>} />
               <Route path="/farmer/reviews" element={<ProtectedRoute role="farmer"><Reviews /></ProtectedRoute>} />
 
-              {/* Admin */}
               <Route path="/admin" element={<ProtectedRoute role="admin"><AdminDashboard /></ProtectedRoute>} />
               <Route path="/admin/users" element={<ProtectedRoute role="admin"><AdminUsers /></ProtectedRoute>} />
               <Route path="/admin/audit" element={<ProtectedRoute role="admin"><AuditLogs /></ProtectedRoute>} />

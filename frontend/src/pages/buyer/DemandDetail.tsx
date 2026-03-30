@@ -78,9 +78,7 @@ export default function DemandDetail() {
       />
 
       <div className="grid lg:grid-cols-3 gap-6">
-        {/* Main */}
         <div className="lg:col-span-2 space-y-5">
-          {/* Overview */}
           <div className="border border-gray-100 rounded-2xl overflow-hidden">
             <div className="px-5 py-4 border-b border-gray-50 flex items-center justify-between">
               <StatusBadge status={demand.status} />
@@ -118,7 +116,6 @@ export default function DemandDetail() {
             )}
           </div>
 
-          {/* Offers */}
           <div className="border border-gray-100 rounded-2xl overflow-hidden">
             <div className="px-5 py-4 border-b border-gray-50">
               <p className="font-bold text-gray-900">
@@ -173,7 +170,6 @@ export default function DemandDetail() {
           </div>
         </div>
 
-        {/* Sidebar */}
         <div className="space-y-4">
           <div className="border border-gray-100 rounded-2xl overflow-hidden">
             <div className="px-5 py-4 border-b border-gray-50 flex items-center gap-2">

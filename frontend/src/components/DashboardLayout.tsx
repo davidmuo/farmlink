@@ -31,7 +31,6 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const panelRef = useRef<HTMLDivElement>(null);
 
-  // AI chat state
   const [aiOpen, setAiOpen] = useState(false);
   const aiPanelRef = useRef<HTMLDivElement>(null);
   const [aiMessages, setAiMessages] = useState<{ role: 'user' | 'assistant'; text: string; imagePreview?: string }[]>([]);
@@ -39,7 +38,6 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   const [aiLoading, setAiLoading] = useState(false);
   const aiMessagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Close profile dropdown on outside click
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
@@ -48,7 +46,6 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
-  // Close notification panel on outside click
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (panelRef.current && !panelRef.current.contains(e.target as Node)) setPanelOpen(false);
@@ -75,7 +72,6 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     setNotifications(prev => prev.map(n => ({ ...n, read: true })));
   };
 
-  // Close AI panel on outside click
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (aiPanelRef.current && !aiPanelRef.current.contains(e.target as Node)) setAiOpen(false);
@@ -84,7 +80,6 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     return () => document.removeEventListener('mousedown', handler);
   }, [aiOpen]);
 
-  // Scroll to bottom on new messages
   useEffect(() => {
     aiMessagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [aiMessages, aiLoading]);
@@ -110,10 +105,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       <Sidebar />
       <main className="flex-1 ml-[220px] min-h-screen">
 
-        {/* Topbar */}
         <div className="h-14 flex items-center justify-end px-6 gap-2 border-b border-gray-100 bg-white sticky top-0 z-30">
 
-          {/* AI Assistant (farmers only) */}
           {user?.role === 'farmer' && (
             <button
               onClick={() => setAiOpen(o => !o)}
@@ -124,7 +117,6 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             </button>
           )}
 
-          {/* Bell */}
           <button
             onClick={openPanel}
             className="relative p-2 rounded-xl hover:bg-gray-50 transition-colors"
@@ -138,7 +130,6 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             )}
           </button>
 
-          {/* Profile dropdown */}
           <div ref={ref} className="relative">
             <button onClick={() => setOpen(o => !o)}
               className="flex items-center gap-1.5 p-1.5 rounded-xl hover:bg-gray-50 transition-colors">
@@ -176,7 +167,6 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         </div>
       </main>
 
-      {/* Notification panel overlay */}
       {panelOpen && (
         <div className="fixed inset-0 z-50 flex justify-end">
           <div className="absolute inset-0 bg-black/20" />
@@ -184,7 +174,6 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             ref={panelRef}
             className="relative w-80 bg-white h-full shadow-xl flex flex-col"
           >
-            {/* Panel header */}
             <div className="h-14 flex items-center justify-between px-5 border-b border-gray-100 shrink-0">
               <p className="font-semibold text-gray-900 text-sm" style={{ fontFamily: "'Syne', sans-serif" }}>
                 Notifications
@@ -205,7 +194,6 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
               </div>
             </div>
 
-            {/* Notification list */}
             <div className="flex-1 overflow-y-auto">
               {notifications.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full gap-2 text-center px-6">
@@ -239,7 +227,6 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         </div>
       )}
 
-      {/* AI Chat Panel */}
       {aiOpen && (
         <div className="fixed inset-0 z-50 flex justify-end">
           <div className="absolute inset-0 bg-black/20" />
@@ -247,7 +234,6 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             ref={aiPanelRef}
             className="relative w-80 bg-white h-full shadow-xl flex flex-col"
           >
-            {/* Panel header */}
             <div className="h-14 flex items-center justify-between px-5 border-b border-gray-100 shrink-0">
               <div className="flex items-center gap-2">
                 <Sparkles size={14} className="text-gray-500" />
@@ -263,7 +249,6 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
               </button>
             </div>
 
-            {/* Messages */}
             <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-3">
               {aiMessages.length === 0 && (
                 <div className="flex flex-col items-center justify-center h-full gap-2 text-center px-4">
@@ -296,7 +281,6 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
               <div ref={aiMessagesEndRef} />
             </div>
 
-            {/* Input */}
             <div className="px-4 pb-4 pt-2 border-t border-gray-100 flex items-end gap-2">
               <textarea
                 value={aiInput}

@@ -43,13 +43,11 @@ export default function Sidebar() {
   return (
     <aside className="fixed inset-y-0 left-0 w-[220px] bg-white flex flex-col z-40 border-r border-gray-100">
 
-      {/* Wordmark */}
       <div className="h-14 flex items-center px-5 shrink-0 border-b border-gray-100">
         <span style={{ fontFamily: "'Syne', sans-serif" }}
           className="font-bold text-gray-900 tracking-tight text-base">FarmLink</span>
       </div>
 
-      {/* Nav */}
       <nav className="flex-1 px-3 py-5 space-y-0.5 overflow-y-auto">
         <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest px-2 mb-3">Menu</p>
         {links.map(({ to, label, icon: Icon, end, badge }) => (
@@ -76,7 +74,6 @@ export default function Sidebar() {
         ))}
       </nav>
 
-      {/* Role footer */}
       <div className="px-5 py-4 border-t border-gray-100">
         <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest capitalize">
           {user?.role}

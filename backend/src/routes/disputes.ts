@@ -6,7 +6,6 @@ import { emailDisputeRaised, emailDisputeResolved } from '../lib/email';
 const router = Router();
 const prisma = new PrismaClient();
 
-// POST /disputes — farmer or buyer raises a dispute on a commitment
 router.post('/', authenticate, async (req: AuthRequest, res: Response) => {
   const { commitmentId, reason } = req.body;
   if (!commitmentId || !reason?.trim()) {
@@ -14,7 +13,6 @@ router.post('/', authenticate, async (req: AuthRequest, res: Response) => {
     return;
   }
 
-  // Verify the user is a party to this commitment
   const commitment = await prisma.commitment.findUnique({
     where: { id: parseInt(commitmentId) },
     include: {
@@ -37,7 +35,6 @@ router.post('/', authenticate, async (req: AuthRequest, res: Response) => {
     return;
   }
 
-  // Prevent duplicate open disputes
   const existing = await prisma.dispute.findFirst({
     where: { commitmentId: parseInt(commitmentId), raisedById: req.user!.id, status: 'open' },
   });
@@ -65,7 +62,6 @@ router.post('/', authenticate, async (req: AuthRequest, res: Response) => {
     },
   });
 
-  // Email admin
   const admin = await prisma.user.findFirst({ where: { role: 'admin' } });
   if (admin) {
     emailDisputeRaised({
@@ -79,7 +75,6 @@ router.post('/', authenticate, async (req: AuthRequest, res: Response) => {
   res.status(201).json(dispute);
 });
 
-// GET /disputes — admin sees all; parties see their own
 router.get('/', authenticate, async (req: AuthRequest, res: Response) => {
   const isAdmin = req.user!.role === 'admin';
 
@@ -100,9 +95,8 @@ router.get('/', authenticate, async (req: AuthRequest, res: Response) => {
   res.json(disputes);
 });
 
-// PATCH /disputes/:id/resolve — admin resolves or dismisses
 router.patch('/:id/resolve', authenticate, requireRole('admin'), async (req: AuthRequest, res: Response) => {
-  const { action, resolution } = req.body; // action: "resolved" | "dismissed"
+  const { action, resolution } = req.body;
   if (!['resolved', 'dismissed'].includes(action)) {
     res.status(400).json({ error: 'action must be "resolved" or "dismissed"' });
     return;
@@ -130,7 +124,6 @@ router.patch('/:id/resolve', authenticate, requireRole('admin'), async (req: Aut
     },
   });
 
-  // Email the person who raised the dispute
   const raiser = await prisma.user.findUnique({ where: { id: dispute.raisedById } });
   if (raiser) {
     emailDisputeResolved({
@@ -141,7 +134,6 @@ router.patch('/:id/resolve', authenticate, requireRole('admin'), async (req: Aut
     });
   }
 
-  // Notify the person who raised the dispute
   await prisma.notification.create({
     data: {
       userId: dispute.raisedById,

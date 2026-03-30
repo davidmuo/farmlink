@@ -53,7 +53,6 @@ export default function SmsInbox() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div>
           <h1 className="page-title">SMS Inbox</h1>
@@ -68,7 +67,6 @@ export default function SmsInbox() {
 
       <div className="grid lg:grid-cols-2 gap-6 items-start">
 
-        {/* SMS thread */}
         <div className="space-y-3">
           <h2 className="section-title">Message history</h2>
 
@@ -81,11 +79,9 @@ export default function SmsInbox() {
                 const isOut = log.direction === 'outbound';
                 return (
                   <div key={log.id} className={`flex gap-3 ${isOut ? '' : 'flex-row-reverse'}`}>
-                    {/* Avatar */}
-                    <div className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 text-[10px] font-bold ${isOut ? 'bg-brand-600 text-white' : 'bg-gray-200 text-gray-600'}`}>
+                      <div className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 text-[10px] font-bold ${isOut ? 'bg-brand-600 text-white' : 'bg-gray-200 text-gray-600'}`}>
                       {isOut ? 'FL' : (user?.name?.charAt(0) || 'F')}
                     </div>
-                    {/* Bubble */}
                     <div className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 ${isOut ? 'bg-brand-50 border border-brand-100' : 'bg-gray-900 text-white'}`}>
                       <div className={`flex items-center gap-2 mb-1 ${isOut ? '' : 'flex-row-reverse'}`}>
                         <span className={`text-[10px] font-semibold ${isOut ? 'text-brand-600' : 'text-gray-400'}`}>
@@ -112,7 +108,6 @@ export default function SmsInbox() {
           )}
         </div>
 
-        {/* Reply simulator */}
         <div className="space-y-4">
           <div className="card-p">
             <h3 className="font-semibold text-gray-900 mb-1 flex items-center gap-2">
@@ -137,7 +132,6 @@ export default function SmsInbox() {
               </button>
             </form>
 
-            {/* Quick actions */}
             <div className="mt-4 pt-4 border-t border-gray-100">
               <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-2">Quick send</p>
               <div className="grid grid-cols-2 gap-2">
@@ -152,7 +146,6 @@ export default function SmsInbox() {
               </div>
             </div>
 
-            {/* Reply preview */}
             {reply && (
               <div className="mt-4 p-3 bg-brand-50 border border-brand-100 rounded-xl">
                 <p className="text-[10px] font-semibold text-brand-500 mb-1">FarmLink reply:</p>
@@ -161,7 +154,6 @@ export default function SmsInbox() {
             )}
           </div>
 
-          {/* How it works */}
           <div className="card-p space-y-3">
             <h3 className="font-semibold text-gray-900 flex items-center gap-2">
               <Info size={14} className="text-gray-400" /> How the SMS flow works

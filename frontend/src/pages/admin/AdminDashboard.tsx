@@ -45,24 +45,20 @@ export default function AdminDashboard() {
   const [loading, setLoading]     = useState(true);
   const [tab, setTab]             = useState<'overview' | 'activity' | 'platform' | 'prices' | 'farmers' | 'disputes' | 'users'>('overview');
 
-  // Market prices state
   const [marketPrices, setMarketPrices]   = useState<MarketPrice[]>([]);
   const [pricesLoading, setPricesLoading] = useState(false);
   const [editingPrices, setEditingPrices] = useState<Record<number, { priceMin: string; priceMax: string; unit: string }>>({});
   const [savingPrice, setSavingPrice]     = useState<number | null>(null);
 
-  // Farmer verification state
   const [farmers, setFarmers]           = useState<FarmerUser[]>([]);
   const [farmersLoading, setFarmersLoading] = useState(false);
   const [togglingVerify, setTogglingVerify] = useState<number | null>(null);
 
-  // All users state
   const [allUsers, setAllUsers]           = useState<any[]>([]);
   const [usersLoading, setUsersLoading]   = useState(false);
   const [togglingBan, setTogglingBan]     = useState<number | null>(null);
   const [deletingUser, setDeletingUser]   = useState<number | null>(null);
 
-  // Disputes state
   const [disputes, setDisputes]           = useState<any[]>([]);
   const [disputesLoading, setDisputesLoading] = useState(false);
   const [resolvingDispute, setResolvingDispute] = useState<number | null>(null);
@@ -184,7 +180,6 @@ export default function AdminDashboard() {
   return (
     <div className="space-y-0">
 
-      {/* ── Header ─────────────────────────────────────────── */}
       <div className="flex items-start justify-between mb-6">
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center font-black text-purple-700 text-lg">A</div>
@@ -199,7 +194,6 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* ── Tabs ───────────────────────────────────────────── */}
       <div className="flex gap-6 border-b border-gray-100 mb-6 overflow-x-auto">
         {([
           ['overview', 'Overview'],
@@ -219,7 +213,6 @@ export default function AdminDashboard() {
         ))}
       </div>
 
-      {/* ── Stats strip ────────────────────────────────────── */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         {[
           { label: 'Total users',       value: stats?.totalUsers || 0,       sub: 'registered accounts'  },
@@ -235,10 +228,8 @@ export default function AdminDashboard() {
         ))}
       </div>
 
-      {/* ── Overview tab ───────────────────────────────────── */}
       {tab === 'overview' && (
         <div className="space-y-6">
-          {/* Quick links */}
           <div className="grid sm:grid-cols-3 gap-3">
             {[
               { to: '/admin/users',    icon: Users,       label: 'Manage Users',  desc: `${stats?.totalUsers || 0} registered`,         bg: 'bg-blue-50',   ic: 'text-blue-600'   },
@@ -260,7 +251,6 @@ export default function AdminDashboard() {
             ))}
           </div>
 
-          {/* Recent activity */}
           <div className="border border-gray-100 rounded-2xl overflow-hidden" style={{ boxShadow: '0 1px 4px 0 rgb(0 0 0 / 0.05)' }}>
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-50">
               <div>
@@ -304,7 +294,6 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      {/* ── Activity tab ───────────────────────────────────── */}
       {tab === 'activity' && (
         <div className="border border-gray-100 rounded-2xl overflow-hidden" style={{ boxShadow: '0 1px 4px 0 rgb(0 0 0 / 0.05)' }}>
           <div className="px-6 py-4 border-b border-gray-50">
@@ -344,7 +333,6 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      {/* ── Platform tab ───────────────────────────────────── */}
       {tab === 'platform' && (
         <div className="space-y-4">
           <div className="grid sm:grid-cols-2 gap-4">
@@ -390,7 +378,6 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      {/* ── Market Prices tab ──────────────────────────────── */}
       {tab === 'prices' && (
         <div className="space-y-4">
           <div className="flex items-center gap-3 mb-2">
@@ -409,7 +396,6 @@ export default function AdminDashboard() {
             </div>
           ) : (
             <div className="border border-gray-100 rounded-2xl overflow-hidden">
-              {/* Table header */}
               <div className="grid grid-cols-5 gap-4 px-5 py-3 bg-gray-50 border-b border-gray-100">
                 {['Crop', 'Min Price (₦)', 'Max Price (₦)', 'Unit', ''].map(h => (
                   <p key={h} className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest"
@@ -461,7 +447,6 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      {/* ── Disputes tab ───────────────────────────────────── */}
       {tab === 'disputes' && (
         <div className="space-y-4">
           <div className="flex items-center gap-3 mb-2">
@@ -545,7 +530,6 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      {/* ── Users tab ──────────────────────────────────────── */}
       {tab === 'users' && (
         <div className="space-y-4">
           <div className="flex items-center gap-3 mb-2">
@@ -604,7 +588,6 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      {/* ── Farmer Verification tab ────────────────────────── */}
       {tab === 'farmers' && (
         <div className="space-y-4">
           <div className="flex items-center gap-3 mb-2">

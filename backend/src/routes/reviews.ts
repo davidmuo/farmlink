@@ -5,7 +5,6 @@ import { authenticate, AuthRequest } from '../middleware/auth';
 const router = Router();
 const prisma = new PrismaClient();
 
-// POST /reviews — create a review after a commitment is completed
 router.post('/', authenticate, async (req: AuthRequest, res: Response) => {
   const { commitmentId, rating, revieweeId, comment } = req.body;
 
@@ -81,12 +80,11 @@ router.post('/', authenticate, async (req: AuthRequest, res: Response) => {
 
     res.status(201).json(review);
   } catch (err) {
-    console.error('[Reviews] POST error:', err);
+    console.error(err);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
 
-// GET /reviews/commitment/:commitmentId — get review for a specific commitment
 router.get('/commitment/:commitmentId', authenticate, async (req: AuthRequest, res: Response) => {
   try {
     const review = await prisma.review.findUnique({
@@ -104,12 +102,11 @@ router.get('/commitment/:commitmentId', authenticate, async (req: AuthRequest, r
 
     res.json(review);
   } catch (err) {
-    console.error('[Reviews] GET commitment error:', err);
+    console.error(err);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
 
-// GET /reviews/user/:userId — get all reviews received by a user, with average rating
 router.get('/user/:userId', authenticate, async (req: AuthRequest, res: Response) => {
   try {
     const userId = parseInt(req.params.userId);
@@ -129,7 +126,7 @@ router.get('/user/:userId', authenticate, async (req: AuthRequest, res: Response
 
     res.json({ reviews, avgRating, count: reviews.length });
   } catch (err) {
-    console.error('[Reviews] GET user error:', err);
+    console.error(err);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

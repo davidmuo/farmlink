@@ -5,7 +5,6 @@ import { authenticate, AuthRequest } from '../middleware/auth';
 const router = Router();
 const prisma = new PrismaClient();
 
-// GET /notifications/count — unread notification count (sidebar badge)
 router.get('/count', authenticate, async (req: AuthRequest, res: Response) => {
   try {
     const count = await prisma.notification.count({
@@ -13,12 +12,11 @@ router.get('/count', authenticate, async (req: AuthRequest, res: Response) => {
     });
     res.json({ count });
   } catch (err) {
-    console.error('[Notifications] GET count error:', err);
+    console.error(err);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
 
-// GET /notifications — list most recent 50 for current user, include unread count
 router.get('/', authenticate, async (req: AuthRequest, res: Response) => {
   try {
     const [notifications, unreadCount] = await Promise.all([
@@ -34,12 +32,11 @@ router.get('/', authenticate, async (req: AuthRequest, res: Response) => {
 
     res.json({ notifications, unreadCount });
   } catch (err) {
-    console.error('[Notifications] GET error:', err);
+    console.error(err);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
 
-// POST /notifications/:id/read — mark one notification as read
 router.post('/:id/read', authenticate, async (req: AuthRequest, res: Response) => {
   try {
     const notification = await prisma.notification.findUnique({
@@ -63,12 +60,11 @@ router.post('/:id/read', authenticate, async (req: AuthRequest, res: Response) =
 
     res.json(updated);
   } catch (err) {
-    console.error('[Notifications] POST read error:', err);
+    console.error(err);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
 
-// POST /notifications/read-all — mark all notifications as read for current user
 router.post('/read-all', authenticate, async (req: AuthRequest, res: Response) => {
   try {
     await prisma.notification.updateMany({
@@ -78,7 +74,7 @@ router.post('/read-all', authenticate, async (req: AuthRequest, res: Response) =
 
     res.json({ message: 'All notifications marked as read' });
   } catch (err) {
-    console.error('[Notifications] POST read-all error:', err);
+    console.error(err);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
