@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { PrismaClient } from '@prisma/client';
+import { emailWelcome } from '../lib/email';
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -50,6 +51,8 @@ router.post('/register', async (req: Request, res: Response) => {
   });
 
   const token = jwt.sign({ id: user.id, role: user.role, email: user.email }, process.env.JWT_SECRET!, { expiresIn: '7d' });
+
+  emailWelcome({ name: user.name, email: user.email, role: user.role });
 
   res.status(201).json({
     token,

@@ -11,6 +11,23 @@ async function send(to: string, subject: string, html: string) {
   }
 }
 
+export async function emailWelcome(opts: { name: string; email: string; role: string }) {
+  const isFarmer = opts.role === 'farmer';
+  await send(
+    opts.email,
+    `Welcome to FarmLink, ${opts.name}!`,
+    `<p>Hi ${opts.name},</p>
+     <p>Welcome to <strong>FarmLink</strong> — Nigeria's fresh produce marketplace connecting farmers and buyers directly.</p>
+     ${isFarmer
+       ? `<p>As a farmer, you can browse open buyer demands, commit to supply, track your deliveries, and get paid fairly — no middlemen involved.</p>
+          <p>Tip: Use the AI farming assistant to get advice on crops, pests, and soil health.</p>`
+       : `<p>As a buyer, you can post purchase demands for any crop, review farmer commitments, and track deliveries from farm to door.</p>`
+     }
+     <p>Log in now to get started: <a href="https://farmlink-nine-tau.vercel.app">farmlink-nine-tau.vercel.app</a></p>
+     <p style="color:#999;font-size:12px;">FarmLink — Fresh Produce Marketplace · Lagos, Nigeria</p>`,
+  );
+}
+
 export async function emailCommitmentReceived(opts: {
   buyerEmail: string; buyerName: string;
   farmerName: string; cropName: string;
