@@ -1,6 +1,7 @@
 import { Router, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { authenticate, requireRole, AuthRequest } from '../middleware/auth';
+import { emailCommitmentReceived, emailCommitmentAccepted, emailCommitmentRejected } from '../lib/email';
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -49,6 +50,17 @@ router.post('/', authenticate, requireRole('farmer'), async (req: AuthRequest, r
       action: 'CREATE_COMMITMENT',
       details: `Farmer committed ${committedQuantity}kg to demand #${demandId}`,
     },
+  });
+
+  // Email buyer
+  const buyer = commitment.demand.buyer;
+  emailCommitmentReceived({
+    buyerEmail: buyer.user.email,
+    buyerName:  buyer.user.name,
+    farmerName: req.user!.name,
+    cropName:   commitment.demand.crop.cropName,
+    quantity:   commitment.committedQuantity,
+    totalPrice: commitment.committedQuantity * commitment.demand.pricePerUnit,
   });
 
   res.status(201).json({
@@ -113,7 +125,10 @@ router.patch('/:id/status', authenticate, requireRole('buyer', 'admin'), async (
 
   const commitment = await prisma.commitment.findUnique({
     where: { id: parseInt(req.params.id) },
-    include: { demand: true },
+    include: {
+      demand: { include: { crop: true, buyer: { include: { user: true } } } },
+      farmer: { include: { user: true } },
+    },
   });
   if (!commitment) { res.status(404).json({ error: 'Commitment not found' }); return; }
 
@@ -133,6 +148,26 @@ router.patch('/:id/status', authenticate, requireRole('buyer', 'admin'), async (
   await prisma.auditLog.create({
     data: { userId: req.user!.id, action: 'UPDATE_COMMITMENT', details: `Commitment #${commitment.id} set to ${status}` },
   });
+
+  // Email farmer
+  const farmerUser = commitment.farmer.user;
+  if (status === 'accepted') {
+    emailCommitmentAccepted({
+      farmerEmail: farmerUser.email,
+      farmerName:  farmerUser.name,
+      buyerName:   commitment.demand.buyer.user.name,
+      cropName:    commitment.demand.crop.cropName,
+      quantity:    commitment.committedQuantity,
+      totalPrice:  commitment.committedQuantity * commitment.demand.pricePerUnit,
+    });
+  } else if (status === 'rejected') {
+    emailCommitmentRejected({
+      farmerEmail: farmerUser.email,
+      farmerName:  farmerUser.name,
+      buyerName:   commitment.demand.buyer.user.name,
+      cropName:    commitment.demand.crop.cropName,
+    });
+  }
 
   res.json(updated);
 });

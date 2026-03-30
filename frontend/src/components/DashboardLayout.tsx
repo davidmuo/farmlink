@@ -1,6 +1,6 @@
 import { ReactNode, useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Settings, LogOut, ChevronDown, Bell, X, Sparkles, Send, ImagePlus, Loader2 } from 'lucide-react';
+import { Settings, LogOut, ChevronDown, Bell, X, Sparkles, Send, Loader2 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import Sidebar from './Sidebar';
 import { useAuth } from '../context/AuthContext';
@@ -37,8 +37,6 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   const [aiMessages, setAiMessages] = useState<{ role: 'user' | 'assistant'; text: string; imagePreview?: string }[]>([]);
   const [aiInput, setAiInput] = useState('');
   const [aiLoading, setAiLoading] = useState(false);
-  const [aiImage, setAiImage] = useState<{ base64: string; mimeType: string; preview: string } | null>(null);
-  const aiFileRef = useRef<HTMLInputElement>(null);
   const aiMessagesEndRef = useRef<HTMLDivElement>(null);
 
   // Close profile dropdown on outside click
@@ -91,31 +89,14 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     aiMessagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [aiMessages, aiLoading]);
 
-  const handleAiImage = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      const result = reader.result as string;
-      const base64 = result.split(',')[1];
-      setAiImage({ base64, mimeType: file.type, preview: result });
-    };
-    reader.readAsDataURL(file);
-    e.target.value = '';
-  };
-
   const sendAiMessage = async () => {
-    if (!aiInput.trim() && !aiImage) return;
-    const userMsg = { role: 'user' as const, text: aiInput.trim() || 'Please analyze this plant image.', imagePreview: aiImage?.preview };
+    if (!aiInput.trim()) return;
+    const userMsg = { role: 'user' as const, text: aiInput.trim() };
     setAiMessages(prev => [...prev, userMsg]);
     setAiInput('');
-    const sentImage = aiImage;
-    setAiImage(null);
     setAiLoading(true);
     try {
-      const body: any = { message: userMsg.text };
-      if (sentImage) { body.imageBase64 = sentImage.base64; body.mimeType = sentImage.mimeType; }
-      const r = await api.post('/ai/chat', body);
+      const r = await api.post('/ai/chat', { message: userMsg.text });
       setAiMessages(prev => [...prev, { role: 'assistant', text: r.data.reply }]);
     } catch {
       setAiMessages(prev => [...prev, { role: 'assistant', text: 'Sorry, the assistant is unavailable right now. Please try again.' }]);
@@ -288,14 +269,11 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                 <div className="flex flex-col items-center justify-center h-full gap-2 text-center px-4">
                   <Sparkles size={28} className="text-gray-200" />
                   <p className="text-sm font-semibold text-gray-500">Ask me anything</p>
-                  <p className="text-xs text-gray-400">Get advice on crops, pests, diseases, soil health, and more. You can also upload a plant photo.</p>
+                  <p className="text-xs text-gray-400">Get advice on crops, pests, diseases, soil health, and more.</p>
                 </div>
               )}
               {aiMessages.map((m, i) => (
                 <div key={i} className={`flex flex-col gap-1 ${m.role === 'user' ? 'items-end' : 'items-start'}`}>
-                  {m.imagePreview && (
-                    <img src={m.imagePreview} alt="uploaded" className="w-32 h-32 object-cover rounded-xl border border-gray-100" />
-                  )}
                   <div
                     className={`max-w-[85%] px-3 py-2 rounded-2xl text-xs leading-relaxed whitespace-pre-wrap ${
                       m.role === 'user'
@@ -318,37 +296,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
               <div ref={aiMessagesEndRef} />
             </div>
 
-            {/* Image preview */}
-            {aiImage && (
-              <div className="px-4 pb-2 flex items-center gap-2">
-                <div className="relative">
-                  <img src={aiImage.preview} alt="preview" className="w-14 h-14 object-cover rounded-xl border border-gray-200" />
-                  <button
-                    onClick={() => setAiImage(null)}
-                    className="absolute -top-1 -right-1 w-4 h-4 bg-gray-800 rounded-full flex items-center justify-center"
-                  >
-                    <X size={8} className="text-white" />
-                  </button>
-                </div>
-                <p className="text-xs text-gray-400">Image attached</p>
-              </div>
-            )}
-
             {/* Input */}
             <div className="px-4 pb-4 pt-2 border-t border-gray-100 flex items-end gap-2">
-              <input
-                ref={aiFileRef}
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={handleAiImage}
-              />
-              <button
-                onClick={() => aiFileRef.current?.click()}
-                className="p-2 rounded-xl hover:bg-gray-50 transition-colors shrink-0"
-              >
-                <ImagePlus size={15} className="text-gray-400" />
-              </button>
               <textarea
                 value={aiInput}
                 onChange={e => setAiInput(e.target.value)}
@@ -360,7 +309,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
               />
               <button
                 onClick={sendAiMessage}
-                disabled={aiLoading || (!aiInput.trim() && !aiImage)}
+                disabled={aiLoading || !aiInput.trim()}
                 className="p-2 rounded-xl bg-gray-900 text-white hover:bg-gray-700 transition-colors disabled:opacity-40 shrink-0"
               >
                 <Send size={13} />

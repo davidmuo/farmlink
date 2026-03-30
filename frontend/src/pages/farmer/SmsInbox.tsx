@@ -182,17 +182,6 @@ export default function SmsInbox() {
             ))}
           </div>
 
-          <div className="rounded-2xl bg-amber-50 border border-amber-100 p-4">
-            <p className="text-xs font-semibold text-amber-800 mb-1">To enable real SMS</p>
-            <p className="text-xs text-amber-700 leading-relaxed">
-              Sign up at <span className="font-medium">africastalking.com</span>, create a sandbox app,
-              then add <code className="bg-amber-100 px-1 rounded text-[10px]">AT_USERNAME</code> and&nbsp;
-              <code className="bg-amber-100 px-1 rounded text-[10px]">AT_API_KEY</code> to
-              <code className="bg-amber-100 px-1 rounded text-[10px]">backend/.env</code>.
-              The webhook at <code className="bg-amber-100 px-1 rounded text-[10px]">POST /sms/incoming</code> is
-              already production-ready.
-            </p>
-          </div>
         </div>
       </div>
     </div>

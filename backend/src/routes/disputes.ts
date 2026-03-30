@@ -1,6 +1,7 @@
 import { Router, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { authenticate, requireRole, AuthRequest } from '../middleware/auth';
+import { emailDisputeRaised, emailDisputeResolved } from '../lib/email';
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -18,7 +19,7 @@ router.post('/', authenticate, async (req: AuthRequest, res: Response) => {
     where: { id: parseInt(commitmentId) },
     include: {
       farmer: { include: { user: true } },
-      demand:  { include: { buyer: { include: { user: true } } } },
+      demand:  { include: { crop: true, buyer: { include: { user: true } } } },
     },
   });
 
@@ -63,6 +64,17 @@ router.post('/', authenticate, async (req: AuthRequest, res: Response) => {
       details: `Dispute raised on commitment #${commitmentId}: ${reason.trim().slice(0, 80)}`,
     },
   });
+
+  // Email admin
+  const admin = await prisma.user.findFirst({ where: { role: 'admin' } });
+  if (admin) {
+    emailDisputeRaised({
+      adminEmail:    admin.email,
+      raisedByName:  req.user!.name,
+      cropName:      commitment.demand.crop?.cropName ?? 'Unknown crop',
+      reason:        reason.trim(),
+    });
+  }
 
   res.status(201).json(dispute);
 });
@@ -117,6 +129,17 @@ router.patch('/:id/resolve', authenticate, requireRole('admin'), async (req: Aut
       raisedBy: { select: { id: true, name: true, role: true } },
     },
   });
+
+  // Email the person who raised the dispute
+  const raiser = await prisma.user.findUnique({ where: { id: dispute.raisedById } });
+  if (raiser) {
+    emailDisputeResolved({
+      raisedByEmail: raiser.email,
+      raisedByName:  raiser.name,
+      status:        action,
+      resolution:    resolution?.trim(),
+    });
+  }
 
   // Notify the person who raised the dispute
   await prisma.notification.create({
