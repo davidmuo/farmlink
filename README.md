@@ -1,6 +1,6 @@
 # FarmLink
 
-FarmLink is a full-stack fresh produce marketplace built for smallholder farmers and institutional buyers in Nigeria. It digitises the entire supply chain — from a buyer posting a purchase demand to a farmer committing to supply, delivery tracking, payments, dispute resolution, and post-trade reviews — while keeping accessibility in mind through USSD and SMS support for farmers without smartphones.
+FarmLink is a full-stack fresh produce marketplace built for smallholder farmers and institutional buyers in Nigeria. It digitises the entire supply chain from a buyer posting a purchase demand to a farmer committing to supply, delivery tracking, payments, dispute resolution, and post-trade reviews while keeping accessibility in mind through USSD and SMS support for farmers without smartphones.
 
 ---
 
@@ -31,7 +31,7 @@ FarmLink is a full-stack fresh produce marketplace built for smallholder farmers
 - Market price management per crop
 - Farmer verification
 - Dispute resolution with optional resolution notes
-- User management — ban or delete accounts
+- User management  ban or delete accounts
 
 ---
 
