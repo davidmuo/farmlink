@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
 import { formatDistanceToNow } from 'date-fns';
-import { Send, MessageSquare } from 'lucide-react';
+import { Send, MessageSquare, ArrowLeft, Search } from 'lucide-react';
 import api from '../lib/api';
 import { useAuth } from '../context/AuthContext';
-
-const GREEN = '#6DFF8A';
+import PageHeader from '../components/PageHeader';
+import Avatar from '../components/Avatar';
+import CropThumb from '../components/CropThumb';
 
 interface ApiCommitment {
   id: number;
@@ -29,6 +30,7 @@ export default function Messages() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [content, setContent] = useState('');
   const [sending, setSending] = useState(false);
+  const [query, setQuery] = useState('');
   const bottomRef = useRef<HTMLDivElement>(null);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -82,41 +84,47 @@ export default function Messages() {
 
   const cropName = (c: ApiCommitment) => c.demand?.crop?.cropName ?? 'Commitment';
 
+  const visible = query
+    ? commitments.filter(c => `${otherPartyName(c)} ${cropName(c)}`.toLowerCase().includes(query.toLowerCase()))
+    : commitments;
+
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-6" style={{ fontFamily: "'Syne', sans-serif" }}>
-        Messages
-      </h1>
+      <PageHeader title="Messages" subtitle="Coordinate deliveries with the people on the other side of each order." />
 
-      <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden flex" style={{ height: '70vh' }}>
+      <div className="card flex overflow-hidden" style={{ height: 'min(72vh, 720px)' }}>
 
         {/* Conversation list */}
-        <div className="w-72 shrink-0 border-r border-gray-100 flex flex-col">
-          <div className="px-4 py-3 border-b border-gray-50">
-            <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest">Conversations</p>
+        <div className={`${selected ? 'hidden md:flex' : 'flex'} w-full shrink-0 flex-col border-r border-gray-100 md:w-80`}>
+          <div className="border-b border-gray-100 p-3">
+            <div className="relative">
+              <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+              <input value={query} onChange={e => setQuery(e.target.value)} placeholder="Search conversations"
+                className="input h-9 pl-9" />
+            </div>
           </div>
-          <div className="flex-1 overflow-y-auto">
+          <div className="flex-1 overflow-y-auto p-2">
             {commitments.length === 0 && (
-              <div className="flex flex-col items-center justify-center h-full gap-2 px-6 text-center">
-                <MessageSquare size={28} className="text-gray-200" />
-                <p className="text-sm text-gray-400">No conversations yet</p>
+              <div className="flex h-full flex-col items-center justify-center gap-2 px-6 text-center">
+                <MessageSquare size={26} className="text-gray-300" />
+                <p className="text-sm text-gray-500">No conversations yet</p>
               </div>
             )}
-            {commitments.map(c => (
+            {visible.map(c => (
               <button
                 key={c.id}
                 onClick={() => handleSelect(c)}
-                className={`w-full text-left px-4 py-3.5 border-b border-gray-50 hover:bg-gray-50 transition-colors ${selected?.id === c.id ? 'bg-gray-50' : ''}`}
+                className={`flex w-full items-center gap-3 rounded-2xl px-3 py-3 text-left transition-colors ${selected?.id === c.id ? 'bg-gray-100' : 'hover:bg-gray-50'}`}
               >
-                <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-gray-900 flex items-center justify-center text-white text-xs font-bold shrink-0"
-                    style={{ fontFamily: "'Syne', sans-serif" }}>
-                    {otherPartyName(c).charAt(0)}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-gray-900 truncate">{cropName(c)}</p>
-                    <p className="text-xs text-gray-400 truncate">{otherPartyName(c)}</p>
-                  </div>
+                <div className="relative shrink-0">
+                  <Avatar name={otherPartyName(c)} size={42} />
+                  <span className="absolute -bottom-0.5 -right-0.5">
+                    <CropThumb name={cropName(c)} size={18} rounded="full" className={`ring-2 ${selected?.id === c.id ? 'ring-gray-100' : 'ring-white'}`} />
+                  </span>
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-semibold text-gray-900">{otherPartyName(c)}</p>
+                  <p className="truncate text-xs text-gray-500">{cropName(c)} · #{c.id}</p>
                 </div>
               </button>
             ))}
@@ -125,38 +133,42 @@ export default function Messages() {
 
         {/* Chat area */}
         {!selected ? (
-          <div className="flex-1 flex flex-col items-center justify-center gap-3 text-center px-8">
-            <MessageSquare size={36} className="text-gray-200" />
-            <p className="text-sm text-gray-400">Select a conversation to start messaging</p>
+          <div className="hidden flex-1 flex-col items-center justify-center gap-3 bg-gray-50/60 px-8 text-center md:flex">
+            <span className="flex h-11 w-11 items-center justify-center rounded-full bg-gray-100 text-gray-500"><MessageSquare size={20} /></span>
+            <p className="font-semibold text-gray-900">Your conversations</p>
+            <p className="max-w-xs text-sm text-gray-500">Select a conversation to start messaging about an order.</p>
           </div>
         ) : (
-          <div className="flex-1 flex flex-col min-w-0">
+          <div className="flex min-w-0 flex-1 flex-col">
             {/* Chat header */}
-            <div className="h-14 flex items-center px-5 border-b border-gray-100 shrink-0 gap-3">
-              <div className="w-7 h-7 rounded-lg bg-gray-900 flex items-center justify-center text-white text-xs font-bold shrink-0"
-                style={{ fontFamily: "'Syne', sans-serif" }}>
-                {otherPartyName(selected).charAt(0)}
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-gray-900 leading-tight">{cropName(selected)}</p>
-                <p className="text-xs text-gray-400">{otherPartyName(selected)}</p>
+            <div className="flex h-16 shrink-0 items-center gap-3 border-b border-gray-100 px-4 sm:px-5">
+              <button onClick={() => setSelected(null)} className="-ml-1 rounded-full p-2 text-gray-500 hover:bg-gray-100 md:hidden" aria-label="Back to conversations">
+                <ArrowLeft size={18} />
+              </button>
+              <Avatar name={otherPartyName(selected)} size={38} />
+              <div className="min-w-0">
+                <p className="truncate text-sm font-semibold leading-tight text-gray-900">{otherPartyName(selected)}</p>
+                <p className="truncate text-xs text-gray-500">{cropName(selected)} · Commitment #{selected.id}</p>
               </div>
             </div>
 
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto px-5 py-4 flex flex-col gap-2.5">
+            <div className="flex flex-1 flex-col gap-3 overflow-y-auto bg-gray-50/60 px-4 py-5 sm:px-6">
+              {messages.length === 0 && (
+                <p className="m-auto text-sm text-gray-400">No messages yet. Say hello.</p>
+              )}
               {messages.map(m => {
                 const isMine = m.senderId === user?.id;
                 return (
-                  <div key={m.id} className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}>
-                    <div className="max-w-[70%]">
+                  <div key={m.id} className={`flex items-end gap-2 ${isMine ? 'justify-end' : 'justify-start'}`}>
+                    {!isMine && <Avatar name={otherPartyName(selected)} size={26} />}
+                    <div className="max-w-[75%]">
                       <div
-                        className={`px-4 py-2.5 rounded-2xl text-sm ${isMine ? 'rounded-br-md' : 'bg-gray-100 text-gray-800 rounded-bl-md'}`}
-                        style={isMine ? { background: GREEN, color: '#111827' } : {}}
+                        className={`rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${isMine ? 'rounded-br-sm bg-forest-800 text-white' : 'rounded-bl-sm border border-gray-200 bg-white text-gray-800'}`}
                       >
                         {m.content}
                       </div>
-                      <p className={`text-[10px] text-gray-300 mt-1 ${isMine ? 'text-right' : 'text-left'}`}>
+                      <p className={`mt-1 text-[10px] text-gray-400 ${isMine ? 'text-right' : 'text-left'}`}>
                         {formatDistanceToNow(new Date(m.createdAt), { addSuffix: true })}
                       </p>
                     </div>
@@ -167,21 +179,21 @@ export default function Messages() {
             </div>
 
             {/* Input */}
-            <div className="px-5 py-4 border-t border-gray-100 flex items-center gap-3 shrink-0">
+            <div className="flex shrink-0 items-center gap-2 border-t border-gray-100 p-3">
               <input
                 value={content}
                 onChange={e => setContent(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder="Type a message..."
-                className="flex-1 px-4 py-2.5 text-sm bg-gray-50 border border-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-200 transition"
+                className="input h-10 flex-1"
               />
               <button
                 onClick={handleSend}
                 disabled={!content.trim() || sending}
-                className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-opacity disabled:opacity-40"
-                style={{ background: GREEN }}
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-forest-800 text-white transition-colors hover:bg-forest-700 disabled:opacity-40"
+                aria-label="Send message"
               >
-                <Send size={14} className="text-gray-900" />
+                <Send size={16} />
               </button>
             </div>
           </div>

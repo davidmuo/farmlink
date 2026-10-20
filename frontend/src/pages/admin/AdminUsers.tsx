@@ -5,6 +5,7 @@ import { User } from '../../types';
 import EmptyState from '../../components/EmptyState';
 import Spinner from '../../components/Spinner';
 import PageHeader from '../../components/PageHeader';
+import Avatar from '../../components/Avatar';
 import api from '../../lib/api';
 
 const roleBadge: Record<string, string> = {
@@ -40,18 +41,15 @@ export default function AdminUsers() {
     <div>
       <PageHeader title="Users" subtitle={`${users.length} registered users on the platform`} />
 
-      <div className="flex flex-wrap gap-3 mb-5">
-        <div className="relative flex-1 min-w-48">
-          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-          <input value={search} onChange={e => setSearch(e.target.value)} className="input pl-9 text-sm" placeholder="Search by name or email..." />
+      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center">
+        <div className="relative flex-1">
+          <Search size={15} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+          <input value={search} onChange={e => setSearch(e.target.value)} className="input h-10 pl-10" placeholder="Search by name or email…" />
         </div>
-        <div className="flex gap-1.5">
+        <div className="tabs">
           {(['all', 'farmer', 'buyer', 'admin'] as const).map(r => (
-            <button key={r} onClick={() => setRoleFilter(r)}
-              className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-all border ${
-                roleFilter === r ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300'
-              }`}>
-              {r.charAt(0).toUpperCase() + r.slice(1)} <span className="opacity-60">({counts[r]})</span>
+            <button key={r} onClick={() => setRoleFilter(r)} className={`tab ${roleFilter === r ? 'tab-active' : ''}`}>
+              {r.charAt(0).toUpperCase() + r.slice(1)} <span className="tab-count">{counts[r]}</span>
             </button>
           ))}
         </div>
@@ -75,33 +73,31 @@ export default function AdminUsers() {
               {filtered.map((u: any) => (
                 <tr key={u.id}>
                   <td>
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center font-semibold text-gray-600 text-xs flex-shrink-0">
-                        {u.name.charAt(0).toUpperCase()}
-                      </div>
-                      <div>
-                        <p className="font-medium text-gray-900">{u.name}</p>
-                        <p className="text-xs text-gray-400">{u.email}</p>
+                    <div className="flex items-center gap-3">
+                      <Avatar name={u.name} size={38} />
+                      <div className="min-w-0">
+                        <p className="font-semibold text-gray-900">{u.name}</p>
+                        <p className="text-xs text-gray-500">{u.email}</p>
                       </div>
                     </div>
                   </td>
-                  <td><span className={roleBadge[u.role] || 'badge-gray'}>{u.role}</span></td>
-                  <td className="text-gray-500 text-xs">
+                  <td><span className={`capitalize ${roleBadge[u.role] || 'badge-gray'}`}>{u.role}</span></td>
+                  <td className="text-xs text-gray-600">
                     {u.buyer && (
-                      <span className="flex items-center gap-1">
-                        <Building2 size={11} /> {u.buyer.businessName} · {u.buyer.businessType}
+                      <span className="flex items-center gap-1.5">
+                        <Building2 size={12} className="text-gray-400" /> {u.buyer.businessName} · {u.buyer.businessType}
                       </span>
                     )}
                     {u.farmer && (
-                      <div>
-                        <span className="flex items-center gap-1"><MapPin size={11} /> {u.farmer.farmLocation}</span>
-                        <span className="flex items-center gap-1 mt-0.5"><Layers size={11} /> {u.farmer.farmSize} acres</span>
+                      <div className="space-y-0.5">
+                        <span className="flex items-center gap-1.5"><MapPin size={12} className="text-gray-400" /> {u.farmer.farmLocation}</span>
+                        <span className="flex items-center gap-1.5"><Layers size={12} className="text-gray-400" /> {u.farmer.farmSize} acres</span>
                       </div>
                     )}
-                    {!u.buyer && !u.farmer && <span className="text-gray-300">—</span>}
+                    {!u.buyer && !u.farmer && <span className="text-gray-400">None</span>}
                   </td>
-                  <td className="text-gray-400">{u.phone || '—'}</td>
-                  <td className="text-gray-400">{format(new Date(u.createdAt), 'MMM d, yyyy')}</td>
+                  <td className="tabular whitespace-nowrap text-gray-500">{u.phone || 'Not set'}</td>
+                  <td className="whitespace-nowrap text-gray-500">{format(new Date(u.createdAt), 'MMM d, yyyy')}</td>
                 </tr>
               ))}
             </tbody>

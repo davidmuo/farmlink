@@ -1,16 +1,18 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { format, subDays, startOfDay } from 'date-fns';
-import { Search, ArrowRight, ChevronRight } from 'lucide-react';
+import { Search, ArrowRight, ChevronRight, Banknote, Hourglass, Weight, Sprout, MapPin, Ruler, Phone, Mail } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { Commitment } from '../../types';
 import StatusBadge from '../../components/StatusBadge';
 import EmptyState from '../../components/EmptyState';
 import Spinner from '../../components/Spinner';
 import TrendChart from '../../components/TrendChart';
+import StatTile from '../../components/StatTile';
+import CropThumb from '../../components/CropThumb';
+import Avatar from '../../components/Avatar';
 import api from '../../lib/api';
-
-const GREEN = '#6DFF8A';
+import { greeting, firstName } from '../../lib/ui';
 
 const fmt = (n: number) =>
   n >= 1_000_000 ? `₦${(n / 1_000_000).toFixed(1)}M`
@@ -50,114 +52,129 @@ export default function FarmerDashboard() {
     return Object.entries(map).map(([label, val]) => { running += val; return { label, value: running }; });
   })();
 
+  const buyerName = (c: Commitment) => (c.demand as any)?.buyer?.businessName;
+
   return (
-    <div style={{ fontFamily: "'Inter', sans-serif" }}>
+    <div>
+      {/* Header */}
+      <div className="mb-8 flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
+        <div>
+          <p className="mb-1 text-sm text-gray-500">{format(new Date(), 'EEEE, d MMMM')}</p>
+          <h1 className="page-title">
+            {greeting()}, {firstName(user?.name)}
+          </h1>
+          <p className="page-subtitle">{user?.farmer?.farmLocation ? `${user.farmer.farmLocation} · ` : ''}Here's what's growing on FarmLink.</p>
+        </div>
+        <Link to="/farmer/demands" className="btn-lg btn-accent">
+          <Search size={16} /> Browse demands
+        </Link>
+      </div>
 
-
-      <div className="flex gap-6 border-b border-gray-200 mb-8">
+      <div className="tabs mb-6">
         {([['overview', 'Overview'], ['commitments', 'My Commitments'], ['profile', 'Farm Profile']] as const).map(([key, label]) => (
-          <button key={key} onClick={() => setTab(key)}
-            className={`pb-3 text-sm font-medium transition-colors border-b-2 -mb-px ${
-              tab === key ? 'text-gray-900' : 'border-transparent text-gray-400 hover:text-gray-600'
-            }`}
-            style={tab === key ? { borderColor: GREEN } : {}}>
+          <button key={key} onClick={() => setTab(key)} className={`tab ${tab === key ? 'tab-active' : ''}`}>
             {label}
             {key === 'commitments' && pending.length > 0 && (
-              <span className="ml-2 text-[10px] font-bold px-1.5 py-0.5 rounded-full text-gray-900"
-                style={{ background: GREEN }}>{pending.length}</span>
+              <span className="tab-count">{pending.length}</span>
             )}
           </button>
         ))}
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-y md:divide-y-0 divide-gray-100 border border-gray-100 rounded-2xl bg-white mb-8 overflow-hidden">
-        {[
-          { label: 'Confirmed earnings', value: fmt(earnings),                    sub: `${accepted.length} accepted`,  green: true  },
-          { label: 'Pipeline value',     value: fmt(pipeline),                    sub: `${pending.length} pending`,    green: false },
-          { label: 'Total committed',    value: `${totalKg.toLocaleString()} kg`, sub: 'all time',                     green: false },
-          { label: 'Crops growing',      value: cropsGrown.length,                sub: 'crop types',                   green: false },
-        ].map(s => (
-          <div key={s.label} className="p-5">
-            <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-3"
-              style={{ fontFamily: "'Syne', sans-serif" }}>{s.label}</p>
-            <p className="text-2xl font-black tracking-tight leading-none"
-              style={{ color: s.green ? GREEN : '#111827' }}>{s.value}</p>
-            <p className="text-xs text-gray-400 mt-1.5">{s.sub}</p>
-          </div>
-        ))}
+      <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <StatTile label="Confirmed earnings" value={fmt(earnings)}                    sub={`${accepted.length} accepted`} icon={Banknote} />
+        <StatTile label="Pipeline value"     value={fmt(pipeline)}                    sub={`${pending.length} pending`}   icon={Hourglass} />
+        <StatTile label="Total committed"    value={`${totalKg.toLocaleString()} kg`} sub="all time"                      icon={Weight} />
+        <StatTile label="Crops growing"      value={cropsGrown.length}                sub="crop types"                    icon={Sprout} />
       </div>
 
       {tab === 'overview' && (
-        <div className="space-y-5">
-
-          <div className="bg-white border border-gray-100 rounded-2xl p-6">
-            <div className="flex items-start justify-between mb-5">
-              <div>
-                <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-1"
-                  style={{ fontFamily: "'Syne', sans-serif" }}>Earnings Overview</p>
-                <p className="text-2xl font-black text-gray-900 tracking-tight">{fmt(earnings)}</p>
+        <div className="space-y-6">
+          <div className="grid gap-6 lg:grid-cols-3">
+            <div className="card p-6 lg:col-span-2">
+              <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
+                <div>
+                  <p className="stat-label mb-1.5">Earnings overview</p>
+                  <p className="tabular text-2xl font-semibold tracking-tight text-gray-900">{fmt(earnings)}</p>
+                </div>
+                <span className="text-xs text-gray-500">Last 30 days, cumulative</span>
               </div>
-              <p className="text-xs text-gray-400">30-day cumulative</p>
+              <div className="mb-4 flex flex-wrap items-center gap-x-5 gap-y-2">
+                {[
+                  { dot: 'bg-forest-500',                           label: 'Confirmed', val: fmt(earnings) },
+                  { dot: 'bg-gray-300',                             label: 'Pending',   val: fmt(pipeline) },
+                  { dot: 'border-[1.5px] border-gray-300 bg-white', label: 'Rejected',  val: String(rejected.length) },
+                ].map(l => (
+                  <span key={l.label} className="flex items-center gap-1.5 text-xs text-gray-500">
+                    <span className={`inline-block h-2 w-2 shrink-0 rounded-full ${l.dot}`} />
+                    {l.label} <span className="ml-0.5 font-semibold text-gray-900">{l.val}</span>
+                  </span>
+                ))}
+              </div>
+              <TrendChart data={earningsSeries} height={250} showGrid />
             </div>
-            <div className="flex items-center gap-5 mb-5">
-              {[
-                { dot: GREEN,         label: 'Confirmed', val: fmt(earnings)  },
-                { dot: '#d1d5db',     label: 'Pending',   val: fmt(pipeline)  },
-                { dot: 'transparent', label: 'Rejected',  val: String(rejected.length), border: true },
-              ].map(l => (
-                <span key={l.label} className="flex items-center gap-1.5 text-xs text-gray-500">
-                  <span className="w-2 h-2 rounded-full shrink-0 inline-block"
-                    style={{ background: l.dot, border: l.border ? '1.5px solid #d1d5db' : undefined }} />
-                  {l.label} <span className="font-semibold text-gray-900 ml-0.5">{l.val}</span>
-                </span>
-              ))}
+
+            <div className="card overflow-hidden">
+              <div className="card-header">
+                <p className="card-title">Your crops</p>
+                <Link to="/farmer/demands" className="flex items-center gap-1 text-xs font-semibold text-forest-700 hover:text-forest-900">
+                  Find demands <ArrowRight size={13} />
+                </Link>
+              </div>
+              {cropsGrown.length === 0 ? (
+                <p className="px-6 py-12 text-center text-sm text-gray-500">No crops on your profile yet.</p>
+              ) : (
+                <div className="grid grid-cols-2 gap-2 p-4">
+                  {cropsGrown.map(c => (
+                    <Link key={c} to="/farmer/demands"
+                      className="group flex items-center gap-2.5 rounded-2xl border border-gray-100 p-2 pr-3 transition-all hover:border-gray-200 hover:shadow-card">
+                      <CropThumb name={c} size={36} />
+                      <span className="truncate text-sm font-medium text-gray-800">{c}</span>
+                    </Link>
+                  ))}
+                </div>
+              )}
             </div>
-            <TrendChart data={earningsSeries} height={160} showGrid color={GREEN} />
           </div>
 
-          <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-50">
+          <div className="card overflow-hidden">
+            <div className="card-header">
               <div>
-                <p className="font-bold text-gray-900">My Commitments</p>
-                <p className="text-xs text-gray-400 mt-0.5">
+                <p className="card-title">My commitments</p>
+                <p className="card-sub">
                   {accepted.length} accepted · {pending.length} pending · {rejected.length} rejected
                 </p>
               </div>
               <Link to="/farmer/commitments"
-                className="text-xs font-medium text-gray-500 hover:text-gray-900 flex items-center gap-1 transition-colors">
-                View all <ArrowRight size={12} />
+                className="flex items-center gap-1 text-xs font-semibold text-forest-700 transition-colors hover:text-forest-900">
+                View all <ArrowRight size={13} />
               </Link>
             </div>
             {commitments.length === 0 ? (
-              <EmptyState icon={Search} title="No commitments yet"
+              <EmptyState bare icon={Search} title="No commitments yet"
                 description="Browse open demands and commit to supply what you grow."
-                action={
-                  <Link to="/farmer/demands"
-                    className="inline-flex items-center gap-2 text-sm font-bold px-4 py-2.5 rounded-xl text-gray-900"
-                    style={{ background: GREEN }}>
-                    <Search size={14} /> Browse demands
-                  </Link>
-                }
+                action={<Link to="/farmer/demands" className="btn-md btn-accent"><Search size={14} /> Browse demands</Link>}
               />
             ) : (
-              <div className="divide-y divide-gray-50">
+              <div className="divide-y divide-gray-100">
                 {commitments.slice(0, 7).map(c => {
                   const val = c.committedQuantity * (c.demand?.pricePerUnit || 0);
                   return (
                     <div key={c.id} className="flex items-center gap-4 px-6 py-4">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-0.5">
-                          <p className="font-semibold text-gray-900 text-sm">{c.demand?.crop?.cropName}</p>
+                      <CropThumb name={c.demand?.crop?.cropName} size={44} />
+                      <div className="min-w-0 flex-1">
+                        <div className="mb-0.5 flex items-center gap-2">
+                          <p className="text-sm font-semibold text-gray-900">{c.demand?.crop?.cropName}</p>
                           <StatusBadge status={c.status} />
                         </div>
-                        <p className="text-xs text-gray-400">
-                          {(c.demand as any)?.buyer?.businessName} · {c.committedQuantity} kg
+                        <p className="truncate text-xs text-gray-500">
+                          {buyerName(c)} · {c.committedQuantity} kg
                           {c.demand?.deliveryEnd ? ` · Due ${format(new Date(c.demand.deliveryEnd), 'MMM d')}` : ''}
                         </p>
                       </div>
-                      <div className="text-right shrink-0">
-                        <p className="text-sm font-bold text-gray-900">{fmt(val)}</p>
-                        <p className="text-[11px] text-gray-400 mt-0.5">{format(new Date(c.committedAt), 'MMM d')}</p>
+                      <div className="shrink-0 text-right">
+                        <p className="tabular text-sm font-semibold text-gray-900">{fmt(val)}</p>
+                        <p className="mt-0.5 text-[11px] text-gray-500">{format(new Date(c.committedAt), 'MMM d')}</p>
                       </div>
                     </div>
                   );
@@ -165,62 +182,41 @@ export default function FarmerDashboard() {
               </div>
             )}
           </div>
-
-          {cropsGrown.length > 0 && (
-            <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden">
-              <div className="px-6 py-4 border-b border-gray-50 flex items-center justify-between">
-                <p className="font-bold text-gray-900">Your Crops</p>
-                <Link to="/farmer/demands"
-                  className="text-xs font-medium text-gray-500 hover:text-gray-900 flex items-center gap-1 transition-colors">
-                  Find demands <ArrowRight size={12} />
-                </Link>
-              </div>
-              <div className="p-5 flex flex-wrap gap-2">
-                {cropsGrown.map(c => (
-                  <Link key={c} to="/farmer/demands"
-                    className="px-3 py-1.5 border border-gray-200 text-gray-700 rounded-xl text-sm font-medium hover:border-gray-400 transition-colors">
-                    {c}
-                  </Link>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
       )}
 
       {tab === 'commitments' && (
-        <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-50">
-            <p className="font-bold text-gray-900">All Commitments</p>
-            <p className="text-xs text-gray-400 mt-0.5">{commitments.length} total</p>
+        <div className="card overflow-hidden">
+          <div className="card-header">
+            <div>
+              <p className="card-title">All commitments</p>
+              <p className="card-sub">{commitments.length} total</p>
+            </div>
           </div>
           {commitments.length === 0 ? (
-            <div className="px-6 py-12 text-center text-gray-400 text-sm">No commitments yet.</div>
+            <EmptyState bare icon={Search} title="No commitments yet" description="Browse open demands and commit to supply what you grow." />
           ) : (
-            <div className="divide-y divide-gray-50">
+            <div className="divide-y divide-gray-100">
               {commitments.map(c => {
                 const val = c.committedQuantity * (c.demand?.pricePerUnit || 0);
                 return (
                   <Link key={c.id} to={`/farmer/demands/${c.demandId}`}
-                    className="flex items-center gap-4 px-6 py-4 hover:bg-gray-50 transition-colors group">
-                    <div className="w-8 h-8 rounded-xl bg-gray-900 flex items-center justify-center shrink-0 text-white text-xs font-bold"
-                      style={{ fontFamily: "'Syne', sans-serif" }}>
-                      {c.demand?.crop?.cropName?.charAt(0)}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-0.5">
-                        <p className="font-semibold text-gray-900 text-sm">{c.demand?.crop?.cropName}</p>
+                    className="group flex items-center gap-4 px-6 py-4 transition-colors hover:bg-gray-50/80">
+                    <CropThumb name={c.demand?.crop?.cropName} size={44} />
+                    <div className="min-w-0 flex-1">
+                      <div className="mb-0.5 flex items-center gap-2">
+                        <p className="text-sm font-semibold text-gray-900">{c.demand?.crop?.cropName}</p>
                         <StatusBadge status={c.status} />
                       </div>
-                      <p className="text-xs text-gray-400">
-                        {(c.demand as any)?.buyer?.businessName} · {c.committedQuantity} kg · ₦{c.demand?.pricePerUnit}/kg
+                      <p className="truncate text-xs text-gray-500">
+                        {buyerName(c)} · {c.committedQuantity} kg · ₦{c.demand?.pricePerUnit}/kg
                       </p>
                     </div>
-                    <div className="text-right shrink-0">
-                      <p className="text-sm font-bold text-gray-900">{fmt(val)}</p>
-                      <p className="text-[11px] text-gray-400">{format(new Date(c.committedAt), 'MMM d, yyyy')}</p>
+                    <div className="shrink-0 text-right">
+                      <p className="tabular text-sm font-semibold text-gray-900">{fmt(val)}</p>
+                      <p className="text-[11px] text-gray-500">{format(new Date(c.committedAt), 'MMM d, yyyy')}</p>
                     </div>
-                    <ChevronRight size={14} className="text-gray-300 group-hover:text-gray-500 shrink-0" />
+                    <ChevronRight size={16} className="shrink-0 text-gray-300 transition-transform group-hover:translate-x-0.5 group-hover:text-gray-500" />
                   </Link>
                 );
               })}
@@ -230,49 +226,50 @@ export default function FarmerDashboard() {
       )}
 
       {tab === 'profile' && (
-        <div className="space-y-4">
-          <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-50">
-              <p className="font-bold text-gray-900">Farm Information</p>
+        <div className="grid gap-6 lg:grid-cols-3">
+          <div className="card overflow-hidden lg:col-span-2">
+            <div className="flex items-center gap-4 border-b border-gray-100 p-6">
+              <Avatar name={user?.name} size={64} rounded="2xl" />
+              <div>
+                <p className="text-lg font-semibold text-gray-900">{user?.name}</p>
+                <p className="text-sm text-gray-500">Farmer{user?.farmer?.farmLocation ? ` · ${user.farmer.farmLocation}` : ''}</p>
+              </div>
             </div>
-            <div className="p-6 grid sm:grid-cols-2 gap-6">
+            <div className="grid gap-px bg-gray-100 sm:grid-cols-2">
               {[
-                { label: 'Location',  value: user?.farmer?.farmLocation },
-                { label: 'Farm size', value: `${user?.farmer?.farmSize} hectares` },
-                { label: 'Phone',     value: user?.phone || 'Not set' },
-                { label: 'Email',     value: user?.email },
+                { icon: MapPin, label: 'Location',  value: user?.farmer?.farmLocation },
+                { icon: Ruler,  label: 'Farm size', value: `${user?.farmer?.farmSize} hectares` },
+                { icon: Phone,  label: 'Phone',     value: user?.phone || 'Not set' },
+                { icon: Mail,   label: 'Email',     value: user?.email },
               ].map(f => (
-                <div key={f.label}>
-                  <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-1.5"
-                    style={{ fontFamily: "'Syne', sans-serif" }}>{f.label}</p>
-                  <p className="font-semibold text-gray-900 text-sm">{f.value}</p>
+                <div key={f.label} className="flex items-center gap-3 bg-white px-6 py-4">
+                  <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gray-100 text-gray-500"><f.icon size={15} /></span>
+                  <div className="min-w-0">
+                    <p className="stat-label">{f.label}</p>
+                    <p className="truncate text-sm font-semibold text-gray-900">{f.value}</p>
+                  </div>
                 </div>
               ))}
             </div>
-            <div className="px-6 pb-6 border-t border-gray-50 pt-4">
-              <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-3"
-                style={{ fontFamily: "'Syne', sans-serif" }}>Crops grown</p>
+            <div className="border-t border-gray-100 p-6">
+              <p className="stat-label mb-3">Crops grown</p>
               <div className="flex flex-wrap gap-2">
                 {cropsGrown.map(c => (
-                  <span key={c} className="px-3 py-1.5 border border-gray-200 text-gray-700 rounded-xl text-sm">
-                    {c}
+                  <span key={c} className="inline-flex h-9 items-center gap-2 rounded-full border border-gray-200 bg-white pl-1 pr-3.5 text-sm text-gray-800">
+                    <CropThumb name={c} size={28} rounded="full" /> {c}
                   </span>
                 ))}
               </div>
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid gap-3">
             {[
-              { label: 'Total',    value: commitments.length, green: false },
-              { label: 'Accepted', value: accepted.length,    green: true  },
-              { label: 'Pending',  value: pending.length,     green: false },
+              { label: 'Total',    value: commitments.length },
+              { label: 'Accepted', value: accepted.length },
+              { label: 'Pending',  value: pending.length },
             ].map(s => (
-              <div key={s.label} className="bg-white border border-gray-100 rounded-2xl p-5 text-center">
-                <p className="text-3xl font-black tracking-tight"
-                  style={{ color: s.green ? GREEN : '#111827' }}>{s.value}</p>
-                <p className="text-xs text-gray-400 mt-1">{s.label} commitments</p>
-              </div>
+              <StatTile key={s.label} label={`${s.label} commitments`} value={s.value} />
             ))}
           </div>
         </div>

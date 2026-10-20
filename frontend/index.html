@@ -4,13 +4,42 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>FarmLink — Fresh Produce Marketplace</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Instrument+Serif:ital@0;1&family=Syne:wght@700;800&display=swap" rel="stylesheet" />
+    <meta name="theme-color" content="#0A1C14" />
+    <meta name="description" content="FarmLink connects verified Nigerian farmers directly with hotels, restaurants, schools and NGOs. Post what you need and get committed supply, with no middlemen." />
+    <title>FarmLink | Fresh Produce Marketplace</title>
+    <link rel="preconnect" href="https://images.pexels.com" crossorigin />
+    <style>
+      /* Homepage boot shell: the hero backdrop paints straight from HTML, before any JS.
+         React replaces it with the identical hero on first render. */
+      #boot { display: none; }
+      html[data-boot='home'] #boot { display: block; position: absolute; top: 0; left: 0; right: 0; height: 560px; background: #0A1C14; overflow: hidden; }
+      @media (min-width: 640px) { html[data-boot='home'] #boot { height: 640px; } }
+      @media (min-width: 1024px) { html[data-boot='home'] #boot { height: 88vh; } }
+      #boot img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+      #boot::after { content: ''; position: absolute; inset: 0;
+        background: linear-gradient(to top, rgba(10,28,20,.9), rgba(10,28,20,.5) 50%, rgba(10,28,20,.4)); }
+    </style>
+    <script>
+      // Start the homepage hero poster (the largest thing on screen) before any JS loads.
+      // Keep the paths and the size rule in sync with VIDEOS.hero in src/lib/media.ts and src/lib/net.ts.
+      (function () {
+        if (location.pathname !== '/') return;
+        var c = navigator.connection || {};
+        var small = window.innerWidth < 768 || c.saveData || (c.effectiveType && c.effectiveType !== '4g');
+        window.__heroPoster = small ? '/media/hero-poster-sm.31616f18.webp' : '/media/hero-poster-lg.dc0d7117.webp';
+        document.documentElement.setAttribute('data-boot', 'home');
+        var l = document.createElement('link');
+        l.rel = 'preload';
+        l.as = 'image';
+        l.href = window.__heroPoster;
+        l.setAttribute('fetchpriority', 'high');
+        document.head.appendChild(l);
+      })();
+    </script>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root"><div id="boot" aria-hidden="true"><img id="boot-img" alt="" /></div></div>
+    <script>if (window.__heroPoster) document.getElementById('boot-img').src = window.__heroPoster;</script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
-import { Phone, PhoneOff, Delete, Smartphone } from 'lucide-react';
+import { Phone, PhoneOff, Delete, Smartphone, Info } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import PageHeader from '../../components/PageHeader';
 import api from '../../lib/api';
 
 type Phase = 'idle' | 'active' | 'ended';
@@ -85,80 +86,73 @@ export default function UssdSimulator() {
   const isCallable = phase === 'idle';
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h1 className="page-title">USSD Simulator</h1>
-          <p className="page-subtitle mt-1">
-            Farmers without smartphones can browse and commit to demands by dialling&nbsp;
-            <span className="font-semibold text-gray-700">{SERVICE_CODE}</span> — just like mobile banking.
-          </p>
-        </div>
-        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-brand-50 text-brand-700 text-xs font-semibold border border-brand-100 shrink-0">
-          <Smartphone size={12} /> Demo mode
-        </span>
-      </div>
+    <div>
+      <PageHeader
+        title="USSD Simulator"
+        subtitle={<>Farmers without smartphones can browse and commit to demands by dialling <span className="font-mono font-semibold text-gray-800">{SERVICE_CODE}</span>, just like mobile banking.</>}
+        action={
+          <span className="badge-gray">
+            <Smartphone size={13} /> Demo mode
+          </span>
+        }
+      />
 
-      <div className="grid lg:grid-cols-2 gap-8 items-start">
-        <div className="flex justify-center">
-          <div className="w-[280px]">
-            <div className="bg-gray-900 rounded-[2.5rem] p-4"
-              style={{ boxShadow: '0 25px 60px -10px rgb(0 0 0 / 0.5), 0 0 0 1px rgb(255 255 255 / 0.08)' }}>
+      <div className="grid items-start gap-8 lg:grid-cols-2">
+        <div className="flex justify-center rounded-xl border border-gray-200 bg-gray-100 px-4 py-8 sm:px-6">
 
-              <div className="flex justify-center mb-3">
-                <div className="w-16 h-1.5 bg-gray-700 rounded-full" />
+          <div className="w-full max-w-[288px]">
+            <div className="rounded-[36px] bg-[#16181a] p-4 shadow-lg">
+              <div className="mb-3 flex justify-center">
+                <div className="h-1.5 w-16 rounded-full bg-white/10" />
               </div>
 
-              <div className="bg-gray-950 rounded-2xl overflow-hidden mb-3 border border-gray-800">
-                <div className="flex items-center justify-between px-3 py-1.5 bg-gray-900/80">
-                  <span className="text-[9px] text-gray-500 font-medium">MTN Nigeria</span>
-                  <span className="text-[9px] text-gray-500">
+              <div className="mb-4 overflow-hidden rounded-2xl bg-[#0B110C] ring-1 ring-white/5">
+                <div className="flex items-center justify-between bg-white/5 px-3 py-1.5">
+                  <span className="text-[10px] font-medium text-white/40">MTN Nigeria</span>
+                  <span className="text-[10px] text-white/40">
                     {new Date().toLocaleTimeString('en-NG', { hour: '2-digit', minute: '2-digit' })}
                   </span>
                 </div>
 
-                <div ref={screenRef} className="min-h-[180px] max-h-[200px] overflow-y-auto p-3"
-                  style={{ background: '#0d1117' }}>
+                <div ref={screenRef} className="max-h-[210px] min-h-[190px] overflow-y-auto p-4">
                   {phase === 'idle' && (
-                    <div className="text-center py-8">
-                      <div className="text-2xl mb-2">📱</div>
-                      <p className="text-gray-500 text-xs">Enter USSD code to dial</p>
+                    <div className="flex h-[160px] flex-col items-center justify-center text-center">
+                      <Smartphone size={26} className="mb-3 text-white/40" />
+                      <p className="text-xs text-white/40">Enter USSD code and press Call</p>
                     </div>
                   )}
                   {loading && (
-                    <div className="text-center py-10">
-                      <div className="inline-block w-6 h-6 border-2 border-green-500 border-t-transparent rounded-full animate-spin" />
-                      <p className="text-green-400 text-xs mt-3 font-mono">Connecting...</p>
+                    <div className="flex h-[160px] flex-col items-center justify-center">
+                      <div className="h-6 w-6 animate-spin rounded-full border-2 border-white/70 border-t-transparent" />
+                      <p className="mt-3 font-mono text-xs text-white/70">Connecting...</p>
                     </div>
                   )}
                   {(phase === 'active' || phase === 'ended') && !loading && (
-                    <pre className="text-green-400 text-[11px] leading-5 whitespace-pre-wrap font-mono">{screen}</pre>
+                    <pre className="whitespace-pre-wrap font-mono text-[12px] leading-6 text-gray-100">{screen}</pre>
                   )}
                 </div>
 
-                <div className="px-3 py-2 bg-gray-900 border-t border-gray-800 min-h-[32px] flex items-center">
+                <div className="flex min-h-[38px] items-center border-t border-white/5 px-4 py-2">
                   {phase === 'idle' ? (
-                    <span className="font-mono text-green-400 text-sm tracking-widest">
-                      {dial}<span className="animate-pulse">_</span>
+                    <span className="font-mono text-sm tracking-widest text-gray-100">
+                      {dial}<span className="text-white/60">_</span>
                     </span>
                   ) : phase === 'active' ? (
-                    <span className="font-mono text-white text-sm">
-                      {pending || <span className="text-gray-600 text-xs">type number…</span>}
-                      <span className="text-green-400 animate-pulse">|</span>
+                    <span className="font-mono text-sm text-white">
+                      {pending || <span className="text-xs text-white/30">type number…</span>}
+                      <span className="text-white/60">|</span>
                     </span>
-                  ) : null}
+                  ) : <span className="text-xs text-white/30">Session ended</span>}
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-2 mb-3">
+              <div className="mb-3 grid grid-cols-2 gap-2">
                 <button onClick={handleCall} disabled={!isCallable || loading}
-                  className="flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-bold transition-all disabled:opacity-30"
-                  style={{ background: isCallable ? '#16A34A' : '#1a2e1a', color: '#fff' }}>
+                  className="flex items-center justify-center gap-1.5 rounded-xl bg-green-600 py-3 text-xs font-semibold text-white disabled:opacity-25">
                   <Phone size={14} /> Call
                 </button>
                 <button onClick={handleHangUp} disabled={phase === 'idle'}
-                  className="flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-bold transition-all disabled:opacity-30"
-                  style={{ background: phase !== 'idle' ? '#DC2626' : '#2e1a1a', color: '#fff' }}>
+                  className="flex items-center justify-center gap-1.5 rounded-xl bg-red-600 py-3 text-xs font-semibold text-white disabled:opacity-25">
                   <PhoneOff size={14} /> End
                 </button>
               </div>
@@ -168,61 +162,58 @@ export default function UssdSimulator() {
                   <div key={ri} className="grid grid-cols-3 gap-2">
                     {row.map(k => (
                       <button key={k} onClick={() => handleKey(k)}
-                        className="h-11 rounded-xl font-mono font-bold text-sm text-white transition-all active:scale-95"
-                        style={{ background: '#1e2939' }}>
+                        className="h-12 rounded-xl bg-white/[0.08] font-mono text-base font-medium text-white hover:bg-white/[0.14]">
                         {k}
                       </button>
                     ))}
                   </div>
                 ))}
-                <div className="grid grid-cols-2 gap-2 mt-1">
-                  <button onClick={handleDelete}
-                    className="h-11 rounded-xl text-gray-400 flex items-center justify-center active:scale-95"
-                    style={{ background: '#1e2939' }}>
-                    <Delete size={16} />
+                <div className="mt-1 grid grid-cols-2 gap-2">
+                  <button onClick={handleDelete} aria-label="Delete"
+                    className="flex h-12 items-center justify-center rounded-xl bg-white/[0.08] text-white/70 hover:bg-white/[0.14]">
+                    <Delete size={17} />
                   </button>
                   <button onClick={handleSend}
                     disabled={phase !== 'active' || !pending || loading}
-                    className="h-11 rounded-xl font-bold text-xs transition-all active:scale-95 disabled:opacity-30"
-                    style={{ background: phase === 'active' && pending ? '#16A34A' : '#1a2e1a', color: '#fff' }}>
+                    className="h-12 rounded-xl bg-white/[0.14] text-xs font-semibold text-white disabled:opacity-25">
                     SEND
                   </button>
                 </div>
               </div>
 
-              <div className="flex justify-center mt-3">
-                <div className="w-10 h-1.5 bg-gray-700 rounded-full" />
+              <div className="mt-4 flex justify-center">
+                <div className="h-1.5 w-12 rounded-full bg-white/10" />
               </div>
             </div>
-            <p className="text-center text-xs text-gray-400 mt-3 font-mono">{phoneNumber}</p>
+            <p className="mt-4 text-center font-mono text-xs text-white/50">{phoneNumber}</p>
           </div>
         </div>
 
         <div className="space-y-4">
-          <div className="card-p">
-            <h3 className="font-semibold text-gray-900 mb-3">How to use</h3>
-            <div className="space-y-3">
+          <div className="card p-6">
+            <p className="card-title mb-5">How to use</p>
+            <ol className="space-y-4">
               {[
                 { step: '1', title: 'Press Call', desc: `Dials ${SERVICE_CODE} and opens FarmLink menu` },
                 { step: '2', title: 'Press 1', desc: 'Shows demands matching your crops' },
                 { step: '3', title: 'Select a demand', desc: 'Press the number next to any demand to view details' },
                 { step: '4', title: 'Press 1 to commit', desc: 'Full quantity, or press 2 to enter custom kg' },
-                { step: '5', title: 'Confirm', desc: 'Press 1 to confirm — commitment is created instantly' },
+                { step: '5', title: 'Confirm', desc: 'Press 1 to confirm. The commitment is created instantly' },
               ].map(s => (
-                <div key={s.step} className="flex gap-3">
-                  <div className="w-6 h-6 bg-gray-900 text-white rounded-full flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">{s.step}</div>
+                <li key={s.step} className="flex gap-3.5">
+                  <span className="tabular flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-gray-300 text-xs font-medium text-gray-700">{s.step}</span>
                   <div>
                     <p className="text-sm font-semibold text-gray-900">{s.title}</p>
-                    <p className="text-xs text-gray-400 mt-0.5">{s.desc}</p>
+                    <p className="mt-0.5 text-xs text-gray-500">{s.desc}</p>
                   </div>
-                </div>
+                </li>
               ))}
-            </div>
+            </ol>
           </div>
 
-          <div className="card-p">
-            <h3 className="font-semibold text-gray-900 mb-3">Quick reference</h3>
-            <div className="space-y-1.5">
+          <div className="card p-6">
+            <p className="card-title mb-4">Quick reference</p>
+            <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-2">
               {[
                 { code: SERVICE_CODE, desc: 'Open FarmLink' },
                 { code: '1',          desc: 'Matching demands' },
@@ -233,19 +224,22 @@ export default function UssdSimulator() {
                 { code: '3',          desc: 'My profile' },
                 { code: '0',          desc: 'Back / exit' },
               ].map(r => (
-                <div key={r.code} className="flex items-center gap-3 py-0.5">
-                  <code className="font-mono text-xs bg-gray-100 text-gray-700 px-2 py-0.5 rounded-md min-w-[80px] text-center">{r.code}</code>
-                  <span className="text-xs text-gray-500">{r.desc}</span>
+                <div key={r.code} className="flex items-center gap-3 rounded-xl px-1 py-1">
+                  <code className="min-w-[76px] rounded-lg bg-gray-100 px-2 py-1 text-center font-mono text-xs font-semibold text-forest-800">{r.code}</code>
+                  <span className="text-xs text-gray-600">{r.desc}</span>
                 </div>
               ))}
             </div>
           </div>
 
-          <div className="rounded-2xl border border-amber-100 bg-amber-50 p-4">
-            <p className="text-xs font-semibold text-amber-800 mb-1">Production note</p>
-            <p className="text-xs text-amber-700 leading-relaxed">
-              Using phone <span className="font-medium">{phoneNumber}</span>. In production, any farmer dials from their registered number — no smartphone or internet needed. Gateway: Africa's Talking.
-            </p>
+          <div className="flex gap-3 rounded-3xl bg-amber-50 p-5 ring-1 ring-amber-100">
+            <Info size={16} className="mt-0.5 shrink-0 text-amber-600" />
+            <div>
+              <p className="mb-1 text-xs font-semibold text-amber-900">Production note</p>
+              <p className="text-xs leading-relaxed text-amber-800">
+                Using phone <span className="font-medium">{phoneNumber}</span>. In production, any farmer dials from their registered number. No smartphone or internet needed. Gateway: Africa's Talking.
+              </p>
+            </div>
           </div>
         </div>
       </div>

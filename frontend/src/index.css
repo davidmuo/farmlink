@@ -1,3 +1,8 @@
+/* ─── Font ─────────────────────────────────────────────────
+   Inter, self-hosted and subsetted (see public/fonts/LICENSES.txt): no third-party
+   round trip, no render-blocking stylesheet, cached forever by content hash. */
+@font-face { font-family: 'Inter'; src: url('/fonts/inter-var.131e4894.woff2') format('woff2'); font-weight: 400 700; font-style: normal; font-display: swap; }
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -6,140 +11,164 @@
 @layer base {
   *, *::before, *::after { box-sizing: border-box; }
 
-  html { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+  html { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; scroll-behavior: smooth; }
 
   body {
-    @apply bg-slate-50 text-gray-900;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    @apply bg-gray-50 text-gray-900;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     font-size: 14px;
     line-height: 22px;
-    letter-spacing: -0.01em;
+    overflow-x: hidden;
   }
 
-  h1 { @apply text-3xl font-bold tracking-tight text-gray-900; }
-  h2 { @apply text-xl font-semibold tracking-tight text-gray-900; }
-  h3 { @apply text-base font-semibold text-gray-900; }
+  h1 { @apply text-3xl font-semibold tracking-tight; }
+  h2 { @apply text-xl font-semibold tracking-tight; }
+  h3 { @apply text-base font-semibold; }
 
-  /* Scrollbar */
-  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  img, video { max-width: 100%; }
+
+  ::selection { background: #D8E8DD; color: #0A1C14; }
+
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
   ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { @apply bg-gray-200 rounded-full; }
+  ::-webkit-scrollbar-thumb { @apply bg-gray-200 rounded-full; border: 2px solid transparent; background-clip: padding-box; }
   ::-webkit-scrollbar-thumb:hover { @apply bg-gray-300; }
+
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+  }
 }
 
-/* ─── Buttons ───────────────────────────────────────────────── */
+/* ─── Components ───────────────────────────────────────────── */
 @layer components {
   .btn {
     @apply inline-flex items-center justify-center gap-1.5 font-medium
-    rounded-full transition-all duration-150 cursor-pointer select-none
+    rounded-lg transition-colors duration-150 cursor-pointer select-none
     whitespace-nowrap focus-visible:outline-none focus-visible:ring-2
-    focus-visible:ring-offset-1 focus-visible:ring-brand-500
-    disabled:opacity-40 disabled:cursor-not-allowed;
+    focus-visible:ring-offset-2 focus-visible:ring-forest-600
+    disabled:opacity-50 disabled:cursor-not-allowed;
   }
 
   /* Sizes */
-  .btn-xs  { @apply btn text-xs px-3 py-1.5 h-7; }
-  .btn-sm  { @apply btn text-xs px-3.5 py-2 h-8; }
-  .btn-md  { @apply btn text-sm px-4 py-2.5 h-9; }
-  .btn-lg  { @apply btn text-sm px-6 py-3 h-11; }
-  .btn-xl  { @apply btn text-base px-8 py-3.5 h-12; }
+  .btn-xs  { @apply btn text-xs px-2.5 h-7; }
+  .btn-sm  { @apply btn text-xs px-3 h-8; }
+  .btn-md  { @apply btn text-sm px-3.5 h-9; }
+  .btn-lg  { @apply btn text-sm px-4 h-10; }
+  .btn-xl  { @apply btn text-base px-6 h-11; }
 
   /* Variants */
   .btn-primary {
-    @apply bg-gray-900 text-white hover:bg-gray-800 active:bg-gray-700
-    shadow-sm border border-black/10;
+    @apply bg-forest-800 text-white hover:bg-forest-700;
+  }
+  /* Kept as an alias so existing markup stays valid */
+  .btn-accent {
+    @apply bg-forest-800 text-white hover:bg-forest-700;
   }
   .btn-secondary {
-    @apply bg-white text-gray-700 hover:bg-gray-50 active:bg-gray-100
-    border border-gray-200 shadow-sm;
+    @apply bg-white text-gray-800 hover:bg-gray-50 border border-gray-300;
   }
   .btn-danger {
-    @apply bg-red-500 text-white hover:bg-red-600 active:bg-red-700
-    border border-red-600/10 shadow-sm;
+    @apply bg-red-600 text-white hover:bg-red-700;
   }
   .btn-ghost {
-    @apply bg-transparent text-gray-500 hover:text-gray-800 hover:bg-gray-100
-    border border-transparent;
+    @apply bg-transparent text-gray-600 hover:text-gray-900 hover:bg-gray-100;
   }
   .btn-outline {
-    @apply bg-transparent text-gray-700 hover:bg-gray-50
-    border border-gray-300 hover:border-gray-400;
+    @apply bg-transparent text-gray-800 hover:bg-white border border-gray-300;
   }
 
   /* ─── Inputs ──────────────────────────────────────────────── */
   .input {
-    @apply w-full bg-white border border-gray-200 rounded-xl px-3.5 py-2.5
+    @apply w-full bg-white border border-gray-300 rounded-lg px-3 py-2
     text-sm text-gray-900 placeholder:text-gray-400
-    shadow-sm transition-all duration-150
-    focus:outline-none focus:border-gray-400 focus:ring-2 focus:ring-gray-900/5
-    disabled:bg-gray-50 disabled:text-gray-400 disabled:cursor-not-allowed;
+    transition-colors duration-150
+    hover:border-gray-400
+    focus:outline-none focus:border-forest-600 focus:ring-2 focus:ring-forest-600/15
+    disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-not-allowed;
   }
   .input-error {
     @apply border-red-400 focus:border-red-500 focus:ring-red-500/10;
   }
-  .input-sm { @apply input py-1.5 text-xs rounded-lg; }
+  .input-sm { @apply input py-1.5 text-xs; }
   .label   { @apply block text-sm font-medium text-gray-700 mb-1.5; }
-  .hint    { @apply text-xs text-gray-400 mt-1; }
-  .error-msg { @apply text-xs text-red-500 mt-1 flex items-center gap-1; }
+  .hint    { @apply text-xs text-gray-500 mt-1.5; }
+  .error-msg { @apply text-xs text-red-600 mt-1 flex items-center gap-1; }
 
   /* ─── Cards ───────────────────────────────────────────────── */
   .card {
-    @apply bg-white rounded-2xl border border-gray-100/80;
-    box-shadow: 0 0 0 1px rgb(0 0 0 / 0.06), 0 1px 3px 0 rgb(0 0 0 / 0.05);
+    @apply bg-white rounded-xl border border-gray-200;
   }
   .card-p   { @apply card p-5; }
   .card-sm  { @apply card p-4; }
   .card-lg  { @apply card p-6; }
   .card-hover {
-    @apply card transition-shadow duration-200;
-  }
-  .card-hover:hover {
-    box-shadow: 0 0 0 1px rgb(0 0 0 / 0.08), 0 4px 12px 0 rgb(0 0 0 / 0.08);
+    @apply card transition-colors duration-150 hover:border-gray-300;
   }
   .card-interactive { @apply card-hover cursor-pointer; }
+  .card-header { @apply flex items-center justify-between gap-4 px-5 py-3.5 border-b border-gray-200; }
+  .card-title  { @apply text-[15px] font-semibold text-gray-900; }
+  .card-sub    { @apply text-xs text-gray-500 mt-0.5; }
 
   /* ─── Badges ──────────────────────────────────────────────── */
   .badge {
-    @apply inline-flex items-center gap-1 px-2.5 py-0.5
-    rounded-full text-xs font-medium tracking-wide;
+    @apply inline-flex items-center gap-1.5 px-2 py-0.5
+    rounded-md text-xs font-medium leading-5 whitespace-nowrap;
   }
-  .badge-green  { @apply badge bg-emerald-50  text-emerald-700; }
-  .badge-blue   { @apply badge bg-blue-50     text-blue-700; }
-  .badge-amber  { @apply badge bg-amber-50    text-amber-700; }
-  .badge-red    { @apply badge bg-red-50      text-red-700; }
-  .badge-gray   { @apply badge bg-gray-100    text-gray-600; }
-  .badge-purple { @apply badge bg-purple-50   text-purple-700; }
-  .badge-dark   { @apply badge bg-gray-900    text-white; }
+  .badge-green  { @apply badge bg-forest-50 text-forest-700; }
+  .badge-blue   { @apply badge bg-sky-50 text-sky-700; }
+  .badge-amber  { @apply badge bg-amber-50 text-amber-800; }
+  .badge-red    { @apply badge bg-red-50 text-red-700; }
+  .badge-gray   { @apply badge bg-gray-100 text-gray-700; }
+  .badge-purple { @apply badge bg-violet-50 text-violet-700; }
+  .badge-dark   { @apply badge bg-gray-800 text-white; }
+
+  /* ─── Labels ──────────────────────────────────────────────── */
+  .eyebrow    { @apply text-sm text-gray-500; }
+  .stat-label { @apply text-xs font-medium text-gray-500; }
+
+  /* ─── Filter chips & tabs ─────────────────────────────────── */
+  .chip {
+    @apply inline-flex items-center gap-1.5 h-8 px-3 rounded-lg text-sm
+    border border-gray-300 bg-white text-gray-700 transition-colors
+    hover:border-gray-400 hover:text-gray-900;
+  }
+  .chip-active {
+    @apply border-forest-800 bg-forest-800 text-white hover:text-white hover:border-forest-800;
+  }
+  .tabs { @apply flex items-center gap-6 border-b border-gray-200 max-w-full overflow-x-auto; scrollbar-width: none; }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab  { @apply -mb-px inline-flex items-center gap-2 border-b-2 border-transparent pb-2.5 pt-1 text-sm text-gray-500 whitespace-nowrap transition-colors hover:text-gray-900; }
+  .tab-active { @apply border-forest-700 font-medium text-gray-900; }
+  .tab-count  { @apply rounded-md bg-gray-100 px-1.5 text-xs font-medium text-gray-700; }
 
   /* ─── Navigation ──────────────────────────────────────────── */
   .nav-link {
-    @apply flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium
-    text-gray-500 hover:text-gray-900 hover:bg-gray-100/80
-    transition-all duration-150 cursor-pointer;
+    @apply flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium
+    text-gray-600 hover:text-gray-900 hover:bg-gray-100
+    transition-colors duration-150 cursor-pointer;
   }
   .nav-link-active {
-    @apply text-gray-900 bg-gray-100 hover:bg-gray-100 hover:text-gray-900
-    font-semibold;
+    @apply text-gray-900 bg-gray-100 font-semibold;
   }
   .nav-section {
-    @apply text-[10px] font-semibold text-gray-400 uppercase tracking-widest
-    px-3 mb-1 mt-4;
+    @apply text-xs font-medium text-gray-500 px-3 mb-1 mt-4;
   }
 
   /* ─── Table ───────────────────────────────────────────────── */
-  .table-wrap { @apply card overflow-hidden; }
+  .table-wrap { @apply card overflow-hidden overflow-x-auto; }
   .table      { @apply w-full; }
   .table thead tr {
-    @apply border-b border-gray-100;
+    @apply border-b border-gray-200;
   }
   .table thead th {
-    @apply px-5 py-3 text-left text-[10px] font-semibold text-gray-400
-    uppercase tracking-widest bg-gray-50/60;
+    @apply px-4 py-2.5 text-left text-xs font-medium text-gray-500
+    bg-gray-50 whitespace-nowrap;
   }
-  .table tbody td { @apply px-5 py-3.5 text-sm text-gray-700; }
+  .table tbody td { @apply px-4 py-3 text-sm text-gray-700 align-middle; }
   .table tbody tr {
-    @apply border-b border-gray-50 transition-colors duration-100
-    hover:bg-gray-50/60;
+    @apply border-b border-gray-100 transition-colors duration-100
+    hover:bg-gray-50;
   }
   .table tbody tr:last-child { @apply border-b-0; }
 
@@ -148,22 +177,20 @@
     @apply h-1.5 bg-gray-100 rounded-full overflow-hidden;
   }
   .progress-fill {
-    @apply h-full bg-gray-700 rounded-full transition-all duration-700;
+    @apply h-full bg-forest-600 rounded-full transition-all duration-500;
   }
 
   /* ─── Page structure ──────────────────────────────────────── */
   .page-header {
-    @apply flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-7;
+    @apply flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6;
   }
-  .page-title    { @apply text-2xl font-bold text-gray-900 tracking-tight; }
-  .page-subtitle { @apply text-sm text-gray-400 mt-0.5; }
+  .page-title    { @apply text-2xl font-semibold text-gray-900 tracking-tight; }
+  .page-subtitle { @apply text-sm text-gray-500 mt-1; }
   .section-title { @apply text-sm font-semibold text-gray-700 mb-3; }
 
-  /* ─── Divider ─────────────────────────────────────────────── */
-  .divider { @apply border-t border-gray-100; }
+  .divider { @apply border-t border-gray-200; }
 
-  /* ─── Skeleton ────────────────────────────────────────────── */
-  .skeleton { @apply bg-gray-100 rounded-lg animate-pulse; }
+  .skeleton { @apply bg-gray-100 rounded-md animate-pulse; }
 
   /* ─── Avatar ──────────────────────────────────────────────── */
   .avatar {
@@ -174,23 +201,38 @@
   .avatar-md { @apply avatar w-9 h-9 text-sm; }
   .avatar-lg { @apply avatar w-11 h-11 text-base; }
 
-  /* ─── Trend chip (like finance dashboard) ─────────────────── */
-  .trend-up   { @apply inline-flex items-center gap-0.5 text-xs font-medium text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-md; }
-  .trend-down { @apply inline-flex items-center gap-0.5 text-xs font-medium text-red-500    bg-red-50    px-1.5 py-0.5 rounded-md; }
+  .trend-up   { @apply inline-flex items-center gap-0.5 text-xs font-medium text-forest-700 bg-forest-50 px-1.5 py-0.5 rounded-md; }
+  .trend-down { @apply inline-flex items-center gap-0.5 text-xs font-medium text-red-600 bg-red-50 px-1.5 py-0.5 rounded-md; }
 
-  /* ─── Sidebar item count bubble ───────────────────────────── */
   .count-bubble {
-    @apply min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white
-    text-[10px] font-bold flex items-center justify-center;
+    @apply min-w-[18px] h-[18px] px-1 rounded-full bg-lime-400 text-forest-950
+    text-[10px] font-semibold flex items-center justify-center;
   }
 
-  /* ─── Form group ──────────────────────────────────────────── */
   .form-group { @apply space-y-1.5; }
 
-  /* ─── Panel (right drawer style like finance dashboard) ────── */
   .panel {
     @apply fixed inset-y-0 right-0 w-80 bg-white border-l
-    border-gray-100 flex flex-col z-50;
-    box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.06), 0 4px 6px -4px rgb(0 0 0 / 0.04);
+    border-gray-200 flex flex-col z-50;
   }
+
+  /* ─── Selectable option card (radio-like) ─────────────────── */
+  .option-card {
+    @apply relative text-left p-4 rounded-lg border bg-white transition-colors
+    border-gray-300 hover:border-gray-400;
+  }
+  .option-card-active {
+    @apply border-forest-700 ring-1 ring-forest-700 bg-forest-50/50;
+  }
+}
+
+/* ─── Utilities ────────────────────────────────────────────── */
+@layer utilities {
+  .text-balance { text-wrap: balance; }
+  .text-pretty  { text-wrap: pretty; }
+  .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+  .scrollbar-hide::-webkit-scrollbar { display: none; }
+  .tabular { font-variant-numeric: tabular-nums; }
+  /* Skip layout and paint for long sections until they near the viewport */
+  .cv-auto { content-visibility: auto; contain-intrinsic-size: auto 900px; }
 }

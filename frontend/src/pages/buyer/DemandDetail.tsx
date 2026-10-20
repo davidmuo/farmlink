@@ -2,11 +2,14 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
-import { CheckCircle, XCircle, Lock, Leaf, AlertTriangle } from 'lucide-react';
+import { CheckCircle, XCircle, Lock, Leaf, Inbox, MapPin, Clock, BookOpen, RefreshCw } from 'lucide-react';
 import { Demand } from '../../types';
 import StatusBadge from '../../components/StatusBadge';
 import Spinner from '../../components/Spinner';
 import PageHeader from '../../components/PageHeader';
+import Avatar from '../../components/Avatar';
+import CropThumb from '../../components/CropThumb';
+import EmptyState from '../../components/EmptyState';
 import api from '../../lib/api';
 import { useNotifications } from '../../context/NotificationContext';
 import { useAuth } from '../../context/AuthContext';
@@ -49,10 +52,8 @@ export default function DemandDetail() {
 
   if (loading) return <Spinner />;
   if (!demand) return (
-    <div className="border border-gray-100 rounded-2xl text-center py-16">
-      <p className="text-gray-400">Demand not found</p>
-      <Link to="/buyer/demands" className="btn-md btn-secondary mt-4 inline-flex">Back to demands</Link>
-    </div>
+    <EmptyState icon={Inbox} title="Demand not found" description="It may have been removed or closed."
+      action={<Link to="/buyer/demands" className="btn-md btn-secondary">Back to demands</Link>} />
   );
 
   const isMine = demand.buyerId === user?.buyer?.id;
@@ -65,101 +66,107 @@ export default function DemandDetail() {
 
   return (
     <div>
-      <PageHeader back title={demand.crop.cropName}
-        subtitle={`${demand.crop.category} · Posted ${format(new Date(demand.createdAt), 'MMM d, yyyy')}`}
+      <PageHeader back
+        title={
+          <span className="flex items-center gap-4">
+            <CropThumb name={demand.crop.cropName} size={52} rounded="2xl" />
+            <span>{demand.crop.cropName}</span>
+          </span>
+        }
+        subtitle={`${demand.crop.category} · Posted ${format(new Date(demand.createdAt), 'MMM d, yyyy')} · #${demand.id}`}
         action={
           demand.status !== 'closed' && isMine ? (
-            <button onClick={closeDemand}
-              className="flex items-center gap-2 text-xs font-medium text-gray-500 hover:text-gray-900 border border-gray-200 px-3 py-2 rounded-xl transition-colors">
-              <Lock size={13} /> Close demand
+            <button onClick={closeDemand} className="btn-md btn-secondary">
+              <Lock size={14} /> Close demand
             </button>
           ) : undefined
         }
       />
 
-      <div className="grid lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 space-y-5">
-          <div className="border border-gray-100 rounded-2xl overflow-hidden">
-            <div className="px-5 py-4 border-b border-gray-50 flex items-center justify-between">
+      <div className="grid gap-6 lg:grid-cols-3">
+        <div className="min-w-0 space-y-6 lg:col-span-2">
+          <div className="card overflow-hidden">
+            <div className="flex items-center justify-between gap-3 px-6 pt-5">
               <StatusBadge status={demand.status} />
-              <span className="text-xs text-gray-400">#{demand.id}</span>
+              {(demand as any).isRecurring && (
+                <span className="badge-gray"><RefreshCw size={11} /> {(demand as any).recurrenceNote || 'Recurring'}</span>
+              )}
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 divide-x divide-y divide-gray-50">
+            <div className="grid grid-cols-2 gap-px bg-gray-100 sm:grid-cols-3 mt-5 border-y border-gray-100">
               {[
                 { label: 'Quantity',    value: `${demand.quantity.toLocaleString()} kg` },
-                { label: 'Price / kg', value: `₦${demand.pricePerUnit}` },
-                { label: 'Total value',value: `₦${(demand.quantity * demand.pricePerUnit).toLocaleString()}` },
-                { label: 'Quality',    value: demand.qualityStandard },
-                { label: 'From',       value: format(new Date(demand.deliveryStart), 'MMM d, yyyy') },
-                { label: 'Due',        value: format(new Date(demand.deliveryEnd), 'MMM d, yyyy') },
+                { label: 'Price / kg',  value: `₦${demand.pricePerUnit}` },
+                { label: 'Total value', value: `₦${(demand.quantity * demand.pricePerUnit).toLocaleString()}` },
+                { label: 'Quality',     value: demand.qualityStandard },
+                { label: 'From',        value: format(new Date(demand.deliveryStart), 'MMM d, yyyy') },
+                { label: 'Due',         value: format(new Date(demand.deliveryEnd), 'MMM d, yyyy') },
               ].map(s => (
-                <div key={s.label} className="px-5 py-3.5">
-                  <p className="text-xs text-gray-400 mb-0.5">{s.label}</p>
-                  <p className="font-semibold text-gray-900 text-sm">{s.value}</p>
+                <div key={s.label} className="bg-white px-6 py-4">
+                  <p className="stat-label mb-1">{s.label}</p>
+                  <p className="tabular text-[15px] font-semibold text-gray-900">{s.value}</p>
                 </div>
               ))}
             </div>
-            <div className="px-5 py-4 border-t border-gray-50">
-              <div className="flex items-center justify-between text-xs text-gray-400 mb-2">
-                <span>Fulfillment</span>
-                <span className="font-semibold text-gray-700">{totalCommitted.toLocaleString()} / {demand.quantity.toLocaleString()} kg · {pct}%</span>
+            <div className="px-6 py-5">
+              <div className="mb-2.5 flex items-center justify-between text-xs">
+                <span className="font-medium text-gray-500">Fulfilment</span>
+                <span className="tabular font-semibold text-gray-900">{totalCommitted.toLocaleString()} / {demand.quantity.toLocaleString()} kg · {pct}%</span>
               </div>
-              <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, background: '#6DFF8A' }} />
+              <div className="h-2.5 overflow-hidden rounded-full bg-gray-100">
+                <div className="h-full rounded-full bg-forest-600 transition-all" style={{ width: `${pct}%` }} />
               </div>
             </div>
             {demand.notes && (
-              <div className="px-5 pb-4">
-                <p className="text-xs text-gray-400 mb-1">Notes</p>
-                <p className="text-sm text-gray-600">{demand.notes}</p>
+              <div className="mx-6 mb-6 rounded-2xl bg-gray-50 p-4">
+                <p className="stat-label mb-1">Notes</p>
+                <p className="text-sm leading-relaxed text-gray-700">{demand.notes}</p>
               </div>
             )}
           </div>
 
-          <div className="border border-gray-100 rounded-2xl overflow-hidden">
-            <div className="px-5 py-4 border-b border-gray-50">
-              <p className="font-bold text-gray-900">
-                Farmer Offers{demand.commitments?.length ? ` (${demand.commitments.length})` : ''}
-              </p>
-              {pendingCommitments.length > 0 && (
-                <p className="text-xs text-gray-400 mt-0.5">{pendingCommitments.length} awaiting review</p>
-              )}
+          <div className="card overflow-hidden">
+            <div className="card-header">
+              <div>
+                <p className="card-title">
+                  Farmer offers{demand.commitments?.length ? <span className="font-normal text-gray-400"> ({demand.commitments.length})</span> : ''}
+                </p>
+                {pendingCommitments.length > 0 && (
+                  <p className="card-sub">{pendingCommitments.length} awaiting review</p>
+                )}
+              </div>
             </div>
 
             {!demand.commitments?.length ? (
-              <div className="px-5 py-12 text-center">
-                <AlertTriangle size={24} className="text-gray-200 mx-auto mb-2" />
-                <p className="text-gray-400 text-sm">No offers yet. Farmers will see your demand and respond.</p>
-              </div>
+              <EmptyState bare icon={Inbox} title="No offers yet" description="Farmers will see your demand and respond." />
             ) : (
-              <div className="divide-y divide-gray-50">
+              <div className="divide-y divide-gray-100">
                 {[...pendingCommitments, ...acceptedCommitments, ...otherCommitments].map((c: any) => (
-                  <div key={c.id} className="flex items-start gap-4 px-5 py-4">
-                    <div className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center font-semibold text-gray-600 text-sm shrink-0">
-                      {c.farmer?.user?.name?.charAt(0)}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-0.5">
-                        <p className="font-semibold text-gray-900 text-sm">{c.farmer?.user?.name}</p>
-                        <StatusBadge status={c.status} />
-                      </div>
-                      <p className="text-xs text-gray-500">
-                        {c.committedQuantity} kg · ₦{(c.committedQuantity * demand.pricePerUnit).toLocaleString()}
-                      </p>
-                      <div className="flex gap-3 mt-0.5 text-xs text-gray-400">
-                        {c.farmer?.farmLocation && <span>{c.farmer.farmLocation}</span>}
-                        <span>{format(new Date(c.committedAt), 'MMM d, h:mm a')}</span>
+                  <div key={c.id} className="flex flex-col gap-4 px-6 py-4 sm:flex-row sm:items-center">
+                    <div className="flex min-w-0 flex-1 items-center gap-3.5">
+                      <Avatar name={c.farmer?.user?.name} size={44} />
+                      <div className="min-w-0 flex-1">
+                        <div className="mb-0.5 flex flex-wrap items-center gap-2">
+                          <p className="text-sm font-semibold text-gray-900">{c.farmer?.user?.name}</p>
+                          <StatusBadge status={c.status} />
+                        </div>
+                        <p className="tabular text-sm text-gray-700">
+                          {c.committedQuantity} kg · <span className="font-semibold">₦{(c.committedQuantity * demand.pricePerUnit).toLocaleString()}</span>
+                        </p>
+                        <div className="mt-0.5 flex flex-wrap gap-x-3 text-xs text-gray-500">
+                          {c.farmer?.farmLocation && <span className="inline-flex items-center gap-1"><MapPin size={11} />{c.farmer.farmLocation}</span>}
+                          <span className="inline-flex items-center gap-1"><Clock size={11} />{format(new Date(c.committedAt), 'MMM d, h:mm a')}</span>
+                        </div>
                       </div>
                     </div>
                     {c.status === 'pending' && isMine && (
-                      <div className="flex items-center gap-2 shrink-0">
+                      <div className="flex shrink-0 items-center gap-2 pl-[58px] sm:pl-0">
                         <button onClick={() => updateCommitment(c.id, 'accepted')} disabled={updating === c.id}
-                          className="flex items-center gap-1.5 bg-gray-900 hover:bg-gray-800 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors">
-                          <CheckCircle size={12} /> Accept
+                          className="btn-sm btn-primary">
+                          <CheckCircle size={13} /> Accept
                         </button>
                         <button onClick={() => updateCommitment(c.id, 'rejected')} disabled={updating === c.id}
-                          className="flex items-center gap-1.5 bg-white hover:bg-gray-50 text-gray-600 text-xs font-semibold px-3 py-1.5 rounded-lg border border-gray-200 transition-colors">
-                          <XCircle size={12} /> Reject
+                          className="btn-sm btn-secondary">
+                          <XCircle size={13} /> Reject
                         </button>
                       </div>
                     )}
@@ -171,38 +178,41 @@ export default function DemandDetail() {
         </div>
 
         <div className="space-y-4">
-          <div className="border border-gray-100 rounded-2xl overflow-hidden">
-            <div className="px-5 py-4 border-b border-gray-50 flex items-center gap-2">
-              <Leaf size={14} className="text-gray-400" />
-              <p className="font-semibold text-gray-900 text-sm">Crop Info</p>
+          <div className="card overflow-hidden">
+            <div className="relative h-28 overflow-hidden">
+              <CropThumb name={demand.crop.cropName} size={400} rounded="lg" className="!h-full !w-full !rounded-none" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+              <p className="absolute bottom-3 left-5 flex items-center gap-2 font-display text-[15px] font-semibold text-white">
+                <Leaf size={14} /> Crop info
+              </p>
             </div>
-            <div className="p-5 space-y-3">
+            <div className="space-y-3 p-5">
               <div className="flex justify-between text-sm">
-                <span className="text-gray-400">Category</span>
+                <span className="text-gray-500">Category</span>
                 <span className="font-medium text-gray-900">{demand.crop.category}</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-gray-400">Season</span>
+                <span className="text-gray-500">Season</span>
                 <span className="font-medium text-gray-900">{demand.crop.seasonality}</span>
               </div>
               {demand.crop.storageRequirements && (
-                <p className="text-xs text-gray-400 pt-2 border-t border-gray-50">{demand.crop.storageRequirements}</p>
+                <p className="border-t border-gray-100 pt-3 text-xs leading-relaxed text-gray-500">{demand.crop.storageRequirements}</p>
               )}
             </div>
           </div>
 
           {demand.crop.guidance && demand.crop.guidance.length > 0 && (
-            <div className="border border-gray-100 rounded-2xl overflow-hidden">
-              <div className="px-5 py-4 border-b border-gray-50">
-                <p className="font-semibold text-gray-900 text-sm">Crop Guidance</p>
+            <div className="card overflow-hidden">
+              <div className="card-header">
+                <p className="card-title flex items-center gap-2"><BookOpen size={15} className="text-forest-600" /> Crop guidance</p>
               </div>
-              <div className="p-5 space-y-4">
+              <div className="space-y-4 p-5">
                 {demand.crop.guidance.map(g => (
                   <div key={g.id}>
-                    <p className="text-xs font-semibold text-gray-600 capitalize mb-1">
+                    <p className="mb-1 text-xs font-semibold capitalize text-gray-800">
                       {g.guidanceType.replace('_', ' ')}
                     </p>
-                    <p className="text-xs text-gray-400 leading-relaxed">{g.content}</p>
+                    <p className="text-xs leading-relaxed text-gray-500">{g.content}</p>
                   </div>
                 ))}
               </div>

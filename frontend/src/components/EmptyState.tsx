@@ -6,16 +6,17 @@ interface Props {
   title: string;
   description?: string;
   action?: ReactNode;
+  bare?: boolean;
 }
 
-export default function EmptyState({ icon: Icon, title, description, action }: Props) {
+export default function EmptyState({ icon: Icon, title, description, action, bare = false }: Props) {
   return (
-    <div className="card-p flex flex-col items-center justify-center py-16 text-center">
-      <div className="w-14 h-14 bg-gray-100 rounded-2xl flex items-center justify-center mb-4">
-        <Icon size={24} className="text-gray-300" strokeWidth={1.5} />
-      </div>
-      <p className="font-semibold text-gray-900 text-base">{title}</p>
-      {description && <p className="text-sm text-gray-400 mt-1.5 max-w-xs leading-relaxed">{description}</p>}
+    <div className={`flex flex-col items-center justify-center px-6 py-14 text-center ${bare ? '' : 'card'}`}>
+      <span className="mb-4 flex h-11 w-11 items-center justify-center rounded-full bg-gray-100 text-gray-500">
+        <Icon size={20} strokeWidth={1.75} />
+      </span>
+      <p className="font-semibold text-gray-900">{title}</p>
+      {description && <p className="mt-1 max-w-sm text-sm leading-relaxed text-gray-500">{description}</p>}
       {action && <div className="mt-5">{action}</div>}
     </div>
   );

@@ -2,38 +2,20 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
-import { ClipboardList, XCircle, ChevronRight, Wheat, Truck, AlertTriangle } from 'lucide-react';
+import { ClipboardList, XCircle, ChevronRight, Truck, AlertTriangle, CheckCircle, CalendarDays, PackageCheck } from 'lucide-react';
 import { Commitment } from '../../types';
 import StatusBadge from '../../components/StatusBadge';
 import EmptyState from '../../components/EmptyState';
 import Spinner from '../../components/Spinner';
 import PageHeader from '../../components/PageHeader';
+import CropThumb from '../../components/CropThumb';
+import DeliveryTrack, { DeliveryStatus } from '../../components/DeliveryTrack';
 import api from '../../lib/api';
-
-const GREEN = '#6DFF8A';
 
 const fmt = (n: number) =>
   n >= 1_000_000 ? `₦${(n / 1_000_000).toFixed(1)}M`
   : n >= 1_000   ? `₦${(n / 1_000).toFixed(0)}k`
   : `₦${n.toLocaleString()}`;
-
-type DeliveryStatus = 'pending' | 'in_transit' | 'delivered' | 'completed';
-
-function DeliveryBadge({ status }: { status: DeliveryStatus }) {
-  const cfg: Record<DeliveryStatus, { label: string; cls: string }> = {
-    pending:    { label: 'Pending Delivery', cls: 'bg-gray-100 text-gray-500' },
-    in_transit: { label: 'In Transit',       cls: 'bg-gray-200 text-gray-700' },
-    delivered:  { label: 'Delivered',        cls: 'bg-green-100 text-green-700' },
-    completed:  { label: 'Completed',        cls: 'bg-gray-800 text-white' },
-  };
-  const { label, cls } = cfg[status] || cfg.pending;
-  return (
-    <span className={`inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full ${cls}`}>
-      {status === 'in_transit' && <Truck size={9} />}
-      {label}
-    </span>
-  );
-}
 
 export default function MyCommitments() {
   const [commitments, setCommitments] = useState<Commitment[]>([]);
@@ -79,7 +61,7 @@ export default function MyCommitments() {
     setSubmittingDispute(commitmentId);
     try {
       await api.post('/disputes', { commitmentId, reason });
-      toast.success('Issue reported — an admin will review it');
+      toast.success('Issue reported. An admin will review it.');
       setReportingDispute(null);
       setDisputeText(p => ({ ...p, [commitmentId]: '' }));
     } catch (err: any) {
@@ -103,29 +85,26 @@ export default function MyCommitments() {
 
   return (
     <div>
-      <PageHeader title="My Commitments" subtitle="Track your supply commitments to buyers" />
+      <PageHeader title="My Commitments" subtitle="Track your supply commitments to buyers." />
 
       {totalEarnings > 0 && (
-        <div className="border border-gray-100 rounded-2xl px-5 py-4 mb-6 flex items-center justify-between">
+        <div className="card mb-6 flex flex-wrap items-center justify-between gap-3 p-5">
           <div>
-            <p className="text-xs text-gray-400 mb-0.5">Confirmed earnings</p>
-            <p className="text-xl font-black text-gray-900 tracking-tight">{fmt(totalEarnings)}</p>
+            <p className="text-sm text-gray-600">Confirmed earnings</p>
+            <p className="tabular mt-1 text-2xl font-semibold tracking-tight text-gray-900">{fmt(totalEarnings)}</p>
           </div>
-          <p className="text-xs text-gray-400">{counts.accepted} accepted</p>
+          <span className="badge-green">
+            <PackageCheck size={14} /> {counts.accepted} accepted
+          </span>
         </div>
       )}
 
-      <div className="flex gap-1.5 mb-5 flex-wrap">
+      <div className="tabs mb-6">
         {Object.entries(counts).map(([key, count]) => (
-          <button key={key} onClick={() => setFilter(key)}
-            className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-all border ${
-              filter === key
-                ? 'bg-gray-900 text-white border-gray-900'
-                : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300'
-            }`}>
+          <button key={key} onClick={() => setFilter(key)} className={`tab ${filter === key ? 'tab-active' : ''}`}>
             {key.charAt(0).toUpperCase() + key.slice(1)}
             {count > 0 && (
-              <span className={`ml-1.5 text-xs ${filter === key ? 'opacity-70' : 'text-gray-400'}`}>{count}</span>
+              <span className="tab-count">{count}</span>
             )}
           </button>
         ))}
@@ -136,118 +115,110 @@ export default function MyCommitments() {
           icon={ClipboardList}
           title="No commitments here"
           description="Browse open demands and commit to supply what you grow."
-          action={<Link to="/farmer/demands" className="btn-md btn-primary">Browse demands</Link>}
+          action={<Link to="/farmer/demands" className="btn-md btn-accent">Browse demands</Link>}
         />
       ) : (
-        <div className="border border-gray-100 rounded-2xl overflow-hidden">
-          <div className="divide-y divide-gray-50">
-            {filtered.map(c => {
-              const value = c.committedQuantity * (c.demand?.pricePerUnit || 0);
-              const deliveryStatus: DeliveryStatus = (c as any).deliveryStatus || 'pending';
-              const isAccepted = c.status === 'accepted';
+        <div className="space-y-3">
+          {filtered.map(c => {
+            const value = c.committedQuantity * (c.demand?.pricePerUnit || 0);
+            const deliveryStatus: DeliveryStatus = (c as any).deliveryStatus || 'pending';
+            const isAccepted = c.status === 'accepted';
 
-              return (
-                <div key={c.id} className="px-5 py-4">
-                  <div className="flex items-center gap-4">
-                    <div className="w-9 h-9 bg-gray-50 border border-gray-100 rounded-xl flex items-center justify-center shrink-0">
-                      <Wheat size={14} className="text-gray-400" />
+            return (
+              <div key={c.id} className="card p-5">
+                <div className="flex items-center gap-4">
+                  <CropThumb name={c.demand?.crop?.cropName} size={52} rounded="2xl" />
+                  <div className="min-w-0 flex-1">
+                    <div className="mb-0.5 flex flex-wrap items-center gap-2">
+                      <p className="text-[15px] font-semibold text-gray-900">{c.demand?.crop?.cropName}</p>
+                      <StatusBadge status={c.status} />
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-0.5">
-                        <p className="font-semibold text-gray-900 text-sm">{c.demand?.crop?.cropName}</p>
-                        <StatusBadge status={c.status} />
-                      </div>
-                      <p className="text-xs text-gray-400">
-                        {(c.demand as any)?.buyer?.businessName || (c.demand as any)?.buyer?.user?.name} · {c.committedQuantity} kg · ₦{c.demand?.pricePerUnit}/kg
+                    <p className="truncate text-xs text-gray-500">
+                      {(c.demand as any)?.buyer?.businessName || (c.demand as any)?.buyer?.user?.name} · {c.committedQuantity} kg · ₦{c.demand?.pricePerUnit}/kg
+                    </p>
+                    {c.status === 'accepted' && c.demand?.deliveryEnd && (
+                      <p className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-forest-700">
+                        <CalendarDays size={12} /> Deliver by {format(new Date(c.demand.deliveryEnd), 'MMM d, yyyy')}
                       </p>
-                      {c.status === 'accepted' && c.demand?.deliveryEnd && (
-                        <p className="text-xs text-gray-500 mt-0.5">
-                          Deliver by {format(new Date(c.demand.deliveryEnd), 'MMM d, yyyy')}
-                        </p>
-                      )}
-                    </div>
-                    <div className="text-right shrink-0">
-                      <p className="text-sm font-bold text-gray-900">{fmt(value)}</p>
-                      <p className="text-xs text-gray-400">{format(new Date(c.committedAt), 'MMM d')}</p>
-                    </div>
-                    <div className="flex items-center gap-1 shrink-0">
-                      <Link to={`/farmer/demands/${c.demandId}`}
-                        className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors">
-                        <ChevronRight size={14} />
-                      </Link>
-                      {c.status === 'pending' && (
-                        <button onClick={() => cancel(c.id)} disabled={cancelling === c.id}
-                          className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-red-50 text-gray-300 hover:text-red-500 transition-colors">
-                          <XCircle size={14} />
-                        </button>
-                      )}
-                    </div>
+                    )}
                   </div>
+                  <div className="hidden shrink-0 text-right sm:block">
+                    <p className="tabular text-sm font-semibold text-gray-900">{fmt(value)}</p>
+                    <p className="text-xs text-gray-500">{format(new Date(c.committedAt), 'MMM d')}</p>
+                  </div>
+                  <div className="flex shrink-0 items-center gap-1">
+                    {c.status === 'pending' && (
+                      <button onClick={() => cancel(c.id)} disabled={cancelling === c.id} title="Cancel commitment"
+                        className="flex h-9 w-9 items-center justify-center rounded-full text-gray-400 transition-colors hover:bg-red-50 hover:text-red-600">
+                        <XCircle size={16} />
+                      </button>
+                    )}
+                    <Link to={`/farmer/demands/${c.demandId}`} title="View demand"
+                      className="flex h-9 w-9 items-center justify-center rounded-full text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700">
+                      <ChevronRight size={16} />
+                    </Link>
+                  </div>
+                </div>
 
-                  {isAccepted && (
-                    <div className="mt-3 flex flex-col gap-2 pl-[52px]">
-                      <div className="flex items-center gap-3">
-                        <DeliveryBadge status={deliveryStatus} />
+                {isAccepted && (
+                  <div className="mt-4 space-y-3 border-t border-gray-100 pt-4">
+                    <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
+                      <div className="overflow-x-auto scrollbar-hide"><DeliveryTrack status={deliveryStatus} /></div>
+                      <div className="flex items-center gap-2 lg:ml-auto">
                         {deliveryStatus === 'pending' && (
                           <button
                             onClick={() => updateDelivery(c.id, 'in_transit')}
                             disabled={updatingDelivery === c.id}
-                            className="flex items-center gap-1.5 text-gray-900 font-bold text-xs rounded-xl px-4 py-2"
-                            style={{ background: GREEN }}>
-                            <Truck size={11} />
-                            Mark as In Transit
+                            className="btn-sm btn-accent">
+                            <Truck size={13} /> Mark as in transit
                           </button>
                         )}
                         {deliveryStatus === 'in_transit' && (
                           <button
                             onClick={() => updateDelivery(c.id, 'delivered')}
                             disabled={updatingDelivery === c.id}
-                            className="flex items-center gap-1.5 text-gray-900 font-bold text-xs rounded-xl px-4 py-2"
-                            style={{ background: GREEN }}>
-                            Mark as Delivered
+                            className="btn-sm btn-accent">
+                            <CheckCircle size={13} /> Mark as delivered
                           </button>
                         )}
                         {(deliveryStatus === 'delivered' || deliveryStatus === 'completed') && (
-                          <span className="text-xs font-semibold text-green-700">Delivered ✓</span>
+                          <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-forest-700"><CheckCircle size={13} /> Delivered</span>
                         )}
                         <button
                           onClick={() => setReportingDispute(reportingDispute === c.id ? null : c.id)}
-                          className="ml-auto flex items-center gap-1 text-[11px] text-gray-400 hover:text-red-500 transition-colors">
-                          <AlertTriangle size={11} /> Report issue
+                          className="inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-medium text-gray-500 transition-colors hover:bg-red-50 hover:text-red-600">
+                          <AlertTriangle size={12} /> Report issue
                         </button>
                       </div>
-
-                      {reportingDispute === c.id && (
-                        <div className="space-y-2 pt-1">
-                          <textarea
-                            value={disputeText[c.id] || ''}
-                            onChange={e => setDisputeText(p => ({ ...p, [c.id]: e.target.value }))}
-                            rows={2}
-                            placeholder="Describe the issue briefly…"
-                            className="w-full border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-900 placeholder-gray-300 outline-none focus:border-gray-400 resize-none"
-                          />
-                          <div className="flex gap-2">
-                            <button
-                              onClick={() => submitDispute(c.id)}
-                              disabled={submittingDispute === c.id}
-                              className="text-xs font-bold px-4 py-1.5 rounded-xl text-gray-900 disabled:opacity-40"
-                              style={{ background: GREEN }}>
-                              {submittingDispute === c.id ? 'Sending…' : 'Submit'}
-                            </button>
-                            <button
-                              onClick={() => setReportingDispute(null)}
-                              className="text-xs text-gray-400 hover:text-gray-700 transition-colors px-2">
-                              Cancel
-                            </button>
-                          </div>
-                        </div>
-                      )}
                     </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
+
+                    {reportingDispute === c.id && (
+                      <div className="animate-fade-in space-y-2.5 rounded-2xl bg-red-50/50 p-4 ring-1 ring-red-100">
+                        <textarea
+                          value={disputeText[c.id] || ''}
+                          onChange={e => setDisputeText(p => ({ ...p, [c.id]: e.target.value }))}
+                          rows={2}
+                          placeholder="Describe the issue briefly…"
+                          className="input resize-none"
+                        />
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => submitDispute(c.id)}
+                            disabled={submittingDispute === c.id}
+                            className="btn-sm btn-primary">
+                            {submittingDispute === c.id ? 'Sending…' : 'Submit report'}
+                          </button>
+                          <button onClick={() => setReportingDispute(null)} className="btn-sm btn-ghost">
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       )}
     </div>

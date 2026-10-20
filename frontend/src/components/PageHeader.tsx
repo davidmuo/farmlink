@@ -1,30 +1,31 @@
 import { ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 
 interface Props {
-  title: string;
-  subtitle?: string;
+  title: ReactNode;
+  subtitle?: ReactNode;
   action?: ReactNode;
   back?: boolean;
+  eyebrow?: ReactNode;
 }
 
-export default function PageHeader({ title, subtitle, action, back }: Props) {
+export default function PageHeader({ title, subtitle, action, back, eyebrow }: Props) {
   const navigate = useNavigate();
   return (
     <div className="page-header">
-      <div>
+      <div className="min-w-0">
         {back && (
           <button onClick={() => navigate(-1)}
-            className="inline-flex items-center gap-1 text-xs font-medium text-gray-400
-            hover:text-gray-700 mb-2 transition-colors">
-            <ChevronLeft size={13} /> Back
+            className="mb-3 inline-flex items-center gap-1.5 text-sm text-gray-500 transition-colors hover:text-gray-900">
+            <ArrowLeft size={13} /> Back
           </button>
         )}
+        {eyebrow && <div className="eyebrow mb-2">{eyebrow}</div>}
         <h1 className="page-title">{title}</h1>
         {subtitle && <p className="page-subtitle">{subtitle}</p>}
       </div>
-      {action && <div className="shrink-0">{action}</div>}
+      {action && <div className="flex shrink-0 items-center gap-2">{action}</div>}
     </div>
   );
 }

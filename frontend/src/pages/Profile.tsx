@@ -1,11 +1,11 @@
 import { useState, useEffect, FormEvent } from 'react';
 import toast from 'react-hot-toast';
-import { User, Mail, Phone, MapPin, Layers, Building2, Shield, CheckCircle2, AlertCircle } from 'lucide-react';
+import { User, Mail, Phone, MapPin, Layers, Building2, Shield, CheckCircle2, Plus, LogOut } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import PageHeader from '../components/PageHeader';
+import Avatar from '../components/Avatar';
+import CropThumb from '../components/CropThumb';
 import api from '../lib/api';
-
-const GREEN = '#6DFF8A';
 
 interface CompletionItem { label: string; done: boolean; weight: number; }
 
@@ -76,140 +76,153 @@ export default function Profile() {
 
   const { pct, missing } = useProfileCompletion(user, demandCount);
 
+  const roleBadge = user?.role === 'buyer' ? 'badge-blue' : user?.role === 'farmer' ? 'badge-green' : 'badge-purple';
+
   return (
-    <div className="max-w-2xl">
-      <PageHeader title="Profile & Settings" subtitle="Manage your account information" />
+    <div className="mx-auto max-w-4xl">
+      <PageHeader title="Profile & Settings" subtitle="Manage your account information." />
 
-      <div className="space-y-5">
-        {user?.role !== 'admin' && <div className="border border-gray-100 rounded-2xl p-5 bg-white">
-          <div className="flex items-center justify-between mb-3">
-            <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest"
-              style={{ fontFamily: 'Syne, sans-serif' }}>
-              Profile Completion
-            </p>
-            <span className="text-xl font-black text-gray-900 tracking-tight">{pct}%</span>
-          </div>
-          <div className="w-full h-2.5 bg-gray-100 rounded-full overflow-hidden mb-4">
-            <div
-              className="h-full rounded-full transition-all duration-500"
-              style={{ width: `${pct}%`, background: GREEN }}
-            />
-          </div>
-          {missing.length > 0 ? (
-            <div className="space-y-1.5">
-              <p className="text-xs font-semibold text-gray-600 mb-2">Complete your profile:</p>
-              {missing.map(item => (
-                <button key={item.label}
-                  className="flex items-center gap-2 text-xs text-gray-500 hover:text-gray-800 transition-colors w-full text-left">
-                  <AlertCircle size={12} className="text-gray-300 shrink-0" />
-                  <span>{item.label}</span>
-                  <span className="ml-auto text-gray-300">+{item.weight}%</span>
-                </button>
-              ))}
-            </div>
-          ) : (
-            <div className="flex items-center gap-2 text-xs text-green-700 font-semibold">
-              <CheckCircle2 size={14} />
-              Profile complete!
-            </div>
-          )}
-        </div>}
-
-        <div className="card-p flex items-center gap-4">
-          <div className="w-16 h-16 rounded-2xl bg-gray-100 flex items-center justify-center text-2xl font-bold text-gray-700">
-            {user?.name?.charAt(0).toUpperCase()}
-          </div>
-          <div>
-            <p className="font-bold text-gray-900 text-lg">{user?.name}</p>
-            <p className="text-gray-500 text-sm">{user?.email}</p>
-            <span className={`badge mt-1.5 ${user?.role === 'buyer' ? 'badge-blue' : user?.role === 'farmer' ? 'badge-green' : 'badge-purple'}`}>
-              <Shield size={10} /> {user?.role}
-            </span>
+      <div className="card mb-6 flex flex-col gap-4 p-5 sm:flex-row sm:items-center">
+        <Avatar name={user?.name} size={64} />
+        <div className="min-w-0 flex-1">
+          <p className="text-lg font-semibold text-gray-900">{user?.name}</p>
+          <p className="text-sm text-gray-500">{user?.email}</p>
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            <span className={`${roleBadge} capitalize`}><Shield size={11} /> {user?.role}</span>
+            {user?.buyer?.businessName && <span className="badge-gray"><Building2 size={11} /> {user.buyer.businessName}</span>}
+            {user?.farmer?.farmLocation && <span className="badge-gray"><MapPin size={11} /> {user.farmer.farmLocation}</span>}
           </div>
         </div>
+      </div>
 
-        <form onSubmit={handleSave} className="card-p space-y-4">
-          <h2 className="font-semibold text-gray-900">Personal Information</h2>
-          <div className="grid sm:grid-cols-2 gap-4">
-            <div className="form-group">
-              <label className="label">Full name</label>
-              <div className="relative">
-                <User size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                <input value={form.name} onChange={set('name')} className="input pl-9" placeholder="Your name" />
-              </div>
+      <div className="grid gap-6 lg:grid-cols-3">
+        <div className="min-w-0 space-y-6 lg:col-span-2">
+          <form onSubmit={handleSave} className="card overflow-hidden">
+            <div className="card-header">
+              <p className="card-title">Personal information</p>
             </div>
-            <div className="form-group">
-              <label className="label">Phone number</label>
-              <div className="relative">
-                <Phone size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                <input value={form.phone} onChange={set('phone')} className="input pl-9" placeholder="+234…" />
-              </div>
-            </div>
-          </div>
-          <div className="form-group">
-            <label className="label">Email address</label>
-            <div className="relative">
-              <Mail size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-              <input value={user?.email} disabled className="input pl-9 bg-gray-50 text-gray-400 cursor-not-allowed" />
-            </div>
-            <p className="hint">Email cannot be changed</p>
-          </div>
-          <button type="submit" disabled={saving} className="btn-md btn-primary">
-            {saving ? 'Saving…' : 'Save changes'}
-          </button>
-        </form>
-
-        {user?.farmer && (
-          <div className="card-p space-y-3">
-            <h2 className="font-semibold text-gray-900">Farm Information</h2>
-            <div className="grid sm:grid-cols-2 gap-4 text-sm">
-              <div className="flex items-center gap-2 text-gray-600">
-                <MapPin size={15} className="text-gray-400" />
-                <span>{user.farmer.farmLocation || 'No location set'}</span>
-              </div>
-              <div className="flex items-center gap-2 text-gray-600">
-                <Layers size={15} className="text-gray-400" />
-                <span>{user.farmer.farmSize} acres</span>
-              </div>
-            </div>
-            {cropsGrown.length > 0 && (
-              <div>
-                <p className="text-xs text-gray-400 mb-2">Crops grown</p>
-                <div className="flex flex-wrap gap-1.5">
-                  {cropsGrown.map((c: string) => <span key={c} className="badge-green">{c}</span>)}
+            <div className="space-y-4 p-6">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="form-group">
+                  <label className="label">Full name</label>
+                  <div className="relative">
+                    <User size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                    <input value={form.name} onChange={set('name')} className="input h-11 pl-10" placeholder="Your name" />
+                  </div>
+                </div>
+                <div className="form-group">
+                  <label className="label">Phone number</label>
+                  <div className="relative">
+                    <Phone size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                    <input value={form.phone} onChange={set('phone')} className="input h-11 pl-10" placeholder="+234…" />
+                  </div>
                 </div>
               </div>
-            )}
-            <p className="text-xs text-gray-400">To update farm details, please contact support.</p>
-          </div>
-        )}
-
-        {user?.buyer && (
-          <div className="card-p space-y-3">
-            <h2 className="font-semibold text-gray-900">Business Information</h2>
-            <div className="grid sm:grid-cols-2 gap-4 text-sm">
-              <div className="flex items-center gap-2 text-gray-600">
-                <Building2 size={15} className="text-blue-600" />
-                <span>{user.buyer.businessName}</span>
-              </div>
-              <div className="flex items-center gap-2 text-gray-600">
-                <Shield size={15} className="text-blue-600" />
-                <span>{user.buyer.businessType}</span>
+              <div className="form-group">
+                <label className="label">Email address</label>
+                <div className="relative">
+                  <Mail size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                  <input value={user?.email} disabled className="input h-11 pl-10" />
+                </div>
+                <p className="hint">Email cannot be changed</p>
               </div>
             </div>
-            <p className="text-xs text-gray-400">To update business details, please contact support.</p>
-          </div>
-        )}
+            <div className="flex justify-end border-t border-gray-100 bg-gray-50/60 px-6 py-4">
+              <button type="submit" disabled={saving} className="btn-md btn-primary">
+                {saving ? 'Saving…' : 'Save changes'}
+              </button>
+            </div>
+          </form>
 
-        <div className="card-p border-red-100">
-          <h2 className="font-semibold text-red-700 mb-1">Account</h2>
-          <p className="text-sm text-gray-500 mb-3">Manage your account session</p>
-          <button
-            onClick={() => { if (confirm('Sign out of FarmLink?')) { window.location.href = '/login'; } }}
-            className="btn-md btn-secondary text-red-600 border-red-200 hover:bg-red-50"
-          >
-            Sign out
-          </button>
+          {user?.farmer && (
+            <div className="card overflow-hidden">
+              <div className="card-header">
+                <p className="card-title">Farm information</p>
+              </div>
+              <div className="grid gap-px bg-gray-100 sm:grid-cols-2">
+                <div className="flex items-center gap-3 bg-white px-6 py-4">
+                  <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gray-100 text-gray-500"><MapPin size={15} /></span>
+                  <div><p className="stat-label">Location</p><p className="text-sm font-semibold text-gray-900">{user.farmer.farmLocation || 'No location set'}</p></div>
+                </div>
+                <div className="flex items-center gap-3 bg-white px-6 py-4">
+                  <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gray-100 text-gray-500"><Layers size={15} /></span>
+                  <div><p className="stat-label">Farm size</p><p className="text-sm font-semibold text-gray-900">{user.farmer.farmSize} acres</p></div>
+                </div>
+              </div>
+              {cropsGrown.length > 0 && (
+                <div className="border-t border-gray-100 p-6">
+                  <p className="stat-label mb-3">Crops grown</p>
+                  <div className="flex flex-wrap gap-2">
+                    {cropsGrown.map((c: string) => (
+                      <span key={c} className="inline-flex h-9 items-center gap-2 rounded-full border border-gray-200 pl-1 pr-3.5 text-sm text-gray-800">
+                        <CropThumb name={c} size={28} rounded="full" /> {c}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+              <p className="border-t border-gray-100 px-6 py-3 text-xs text-gray-500">To update farm details, please contact support.</p>
+            </div>
+          )}
+
+          {user?.buyer && (
+            <div className="card overflow-hidden">
+              <div className="card-header">
+                <p className="card-title">Business information</p>
+              </div>
+              <div className="grid gap-px bg-gray-100 sm:grid-cols-2">
+                <div className="flex items-center gap-3 bg-white px-6 py-4">
+                  <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gray-100 text-gray-500"><Building2 size={15} /></span>
+                  <div><p className="stat-label">Business</p><p className="text-sm font-semibold text-gray-900">{user.buyer.businessName}</p></div>
+                </div>
+                <div className="flex items-center gap-3 bg-white px-6 py-4">
+                  <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gray-100 text-gray-500"><Shield size={15} /></span>
+                  <div><p className="stat-label">Type</p><p className="text-sm font-semibold text-gray-900">{user.buyer.businessType}</p></div>
+                </div>
+              </div>
+              <p className="border-t border-gray-100 px-6 py-3 text-xs text-gray-500">To update business details, please contact support.</p>
+            </div>
+          )}
+        </div>
+
+        <div className="space-y-6">
+          {user?.role !== 'admin' && (
+            <div className="card p-6">
+              <div className="flex items-baseline justify-between"><p className="card-title">Profile completion</p><span className="tabular text-sm font-semibold text-gray-900">{pct}%</span></div>
+              <div className="mb-4 mt-3 h-2 w-full overflow-hidden rounded-full bg-gray-100">
+                <div className="h-full rounded-full bg-forest-600 transition-all duration-500" style={{ width: `${pct}%` }} />
+              </div>
+              {missing.length > 0 ? (
+                <div className="space-y-1">
+                  <p className="mb-2 text-xs font-medium text-gray-500">Complete your profile:</p>
+                  {missing.map(item => (
+                    <button key={item.label}
+                      className="flex w-full items-center gap-2.5 rounded-xl px-2 py-2 text-left text-sm text-gray-700 transition-colors hover:bg-gray-50">
+                      <span className="flex h-5 w-5 items-center justify-center rounded-full border border-dashed border-gray-300 text-gray-400"><Plus size={11} /></span>
+                      <span className="flex-1">{item.label}</span>
+                      <span className="tabular text-xs font-semibold text-forest-600">+{item.weight}%</span>
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <div className="flex items-center gap-2 text-sm font-semibold text-forest-700">
+                  <CheckCircle2 size={16} />
+                  Profile complete!
+                </div>
+              )}
+            </div>
+          )}
+
+          <div className="card p-6">
+            <p className="card-title">Account</p>
+            <p className="mb-4 mt-1 text-sm text-gray-500">Manage your account session.</p>
+            <button
+              onClick={() => { if (confirm('Sign out of FarmLink?')) { window.location.href = '/login'; } }}
+              className="btn-md btn-secondary w-full text-red-600 hover:border-red-200 hover:bg-red-50 hover:text-red-700"
+            >
+              <LogOut size={14} /> Sign out
+            </button>
+          </div>
         </div>
       </div>
     </div>

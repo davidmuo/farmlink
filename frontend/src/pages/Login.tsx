@@ -1,36 +1,53 @@
 import { useState, FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { ArrowRight, ChevronDown, ChevronRight } from 'lucide-react';
+import { ArrowRight, ChevronDown, ChevronRight, Loader2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-
-const GREEN = '#6DFF8A';
+import AuthShell from '../components/AuthShell';
+import Avatar from '../components/Avatar';
+import { PHOTOS } from '../lib/media';
 
 const DEMO = [
   {
     section: 'Buyers',
     accounts: [
-      { label: 'Eko Hotels & Suites',          email: 'buyer@demo.com'  },
-      { label: 'Chicken Republic VI',           email: 'buyer2@demo.com' },
-      { label: 'Lagos Food Bank',               email: 'buyer3@demo.com' },
-      { label: 'Chrisland Schools',             email: 'buyer4@demo.com' },
+      { label: 'Eko Hotels & Suites',          email: 'buyer@demo.com',  person: 'Emeka Adeyemi'   },
+      { label: 'Chicken Republic VI',           email: 'buyer2@demo.com', person: 'Ngozi Okonkwo'   },
+      { label: 'Lagos Food Bank',               email: 'buyer3@demo.com', person: 'Dr. Segun Bello' },
+      { label: 'Chrisland Schools',             email: 'buyer4@demo.com', person: 'Folake Adesanya' },
     ],
   },
   {
     section: 'Farmers',
     accounts: [
-      { label: 'Emeka Okafor — Ifo, Ogun',     email: 'farmer@demo.com'  },
-      { label: 'Amaka Nwosu — Ibadan, Oyo',    email: 'farmer2@demo.com' },
-      { label: 'Tunde Adeyemi — Sagamu, Ogun', email: 'farmer3@demo.com' },
+      { label: 'Emeka Okafor · Ifo, Ogun',     email: 'farmer@demo.com',  person: 'Emeka Okafor'  },
+      { label: 'Amaka Nwosu · Ibadan, Oyo',    email: 'farmer2@demo.com', person: 'Amaka Nwosu'   },
+      { label: 'Tunde Adeyemi · Sagamu, Ogun', email: 'farmer3@demo.com', person: 'Tunde Adeyemi' },
     ],
   },
   {
     section: 'Admin',
     accounts: [
-      { label: 'FarmLink Admin',                email: 'admin@demo.com' },
+      { label: 'FarmLink Admin',                email: 'admin@demo.com', person: 'FarmLink Admin' },
     ],
   },
 ];
+
+// Free-tier hosting sleeps when idle; tell people why the first sign-in can take a moment
+async function withWakeNotice<T>(task: Promise<T>): Promise<T> {
+  const timer = setTimeout(() => {
+    toast.loading('Waking up the FarmLink server. The first sign-in can take up to a minute.', { id: 'wake' });
+  }, 3500);
+  try { return await task; }
+  finally { clearTimeout(timer); toast.dismiss('wake'); }
+}
+
+function signInError(err: any, demo: boolean) {
+  if (!err?.response) return "Can't reach the FarmLink server. Check your connection and try again.";
+  if (err.response.status >= 500) return 'The server is having trouble reaching its database. Please try again shortly.';
+  if (demo && err.response.status === 401) return 'This demo account is missing. The database needs its demo data loaded.';
+  return err.response?.data?.error || 'Invalid email or password';
+}
 
 export default function Login() {
   const { login } = useAuth();
@@ -47,112 +64,106 @@ export default function Login() {
     e.preventDefault();
     setLoading(true);
     try {
-      const u = await login(email, password);
+      const u = await withWakeNotice(login(email, password));
       toast.success('Signed in successfully');
       navigate(getDashboard(u.role), { replace: true });
     } catch (err: any) {
-      if (!err.response) toast.error('Cannot connect to server. Is the backend running?');
-      else toast.error(err.response?.data?.error || 'Invalid email or password');
+      toast.error(signInError(err, false));
     } finally { setLoading(false); }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col" style={{ fontFamily: "'Inter', sans-serif" }}>
-      <div className="px-8 py-6">
-        <Link to="/">
-          <span style={{ fontFamily: "'Syne', sans-serif" }} className="text-base font-bold text-gray-900 tracking-tight">
-            FarmLink
-          </span>
-        </Link>
-      </div>
+    <AuthShell
+      photo={PHOTOS.marketStall}
+      photoAlt="A produce seller arranging peppers and cucumbers at a Nigerian market stall"
+      headline="Fresh produce, sourced directly from the farm."
+      caption="Buyers and verified farmers trading on one transparent record, from demand to delivery."
+      topRight={
+        <p className="text-sm text-gray-500">
+          New here? <Link to="/register" className="font-semibold text-forest-900 hover:underline">Create an account</Link>
+        </p>
+      }
+      footer={
+        <>
+          <Link to="/terms" className="hover:text-gray-800">Terms of service</Link>
+          <span className="mx-2">·</span>
+          <Link to="/privacy" className="hover:text-gray-800">Privacy policy</Link>
+          <span className="mx-2">·</span>
+          © {new Date().getFullYear()} FarmLink
+        </>
+      }
+    >
+      <h1 className="text-2xl font-semibold tracking-tight text-gray-900 sm:text-3xl">Sign in</h1>
+      <p className="mt-2 text-sm text-gray-600">Sign in to manage your demands, offers and deliveries.</p>
 
-      <div className="flex-1 flex flex-col items-center justify-center px-4 pb-16">
-        <div className="w-full max-w-[360px]">
-          <h1 className="text-2xl font-bold text-gray-900 tracking-tight mb-1 text-center">Sign in</h1>
-          <p className="text-sm text-gray-400 mb-8 text-center">Welcome back to your account</p>
+      <form onSubmit={handleSubmit} className="mt-9 space-y-4">
+        <div>
+          <label className="label">Email address</label>
+          <input
+            type="email" value={email} onChange={e => setEmail(e.target.value)}
+            required placeholder="you@example.com" autoComplete="email"
+            className="input h-11"
+          />
+        </div>
+        <div>
+          <label className="label">Password</label>
+          <input
+            type="password" value={password} onChange={e => setPassword(e.target.value)}
+            required placeholder="••••••••" autoComplete="current-password"
+            className="input h-11"
+          />
+        </div>
 
-          <form onSubmit={handleSubmit} className="space-y-3">
-            <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1.5">Email address</label>
-              <input
-                type="email" value={email} onChange={e => setEmail(e.target.value)}
-                required placeholder="you@example.com"
-                className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder-gray-300 outline-none focus:border-gray-400 transition-colors"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1.5">Password</label>
-              <input
-                type="password" value={password} onChange={e => setPassword(e.target.value)}
-                required placeholder="••••••••"
-                className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder-gray-300 outline-none focus:border-gray-400 transition-colors"
-              />
-            </div>
+        <button type="submit" disabled={loading}
+          className="btn-lg btn-primary mt-2 w-full">
+          {loading ? <><Loader2 size={16} className="animate-spin" /> Signing in…</> : <>Continue <ArrowRight size={16} /></>}
+        </button>
+      </form>
 
-            <button type="submit" disabled={loading}
-              className="w-full flex items-center justify-center gap-2 font-bold text-sm py-3.5 rounded-xl text-gray-950 transition-opacity hover:opacity-90 mt-1"
-              style={{ background: GREEN }}>
-              {loading ? 'Signing in…' : <><span>Continue</span><ArrowRight size={15} /></>}
-            </button>
-          </form>
-
-          <p className="text-center text-sm text-gray-400 mt-4">
-            No account?{' '}
-            <Link to="/register" className="font-semibold text-gray-900 hover:text-gray-700">Create one</Link>
-          </p>
-
-          <div className="mt-8 bg-white border border-gray-200 rounded-2xl overflow-hidden">
-            <button type="button" onClick={() => setDemoOpen(o => !o)}
-              className="w-full flex items-center justify-between px-4 py-3.5 text-left hover:bg-gray-50 transition-colors">
-              <div>
-                <p className="text-xs font-semibold text-gray-700">Try a demo account</p>
-                <p className="text-[10px] text-gray-400 mt-0.5">password: <span className="font-mono">password123</span></p>
-              </div>
-              <ChevronDown size={15} className={`text-gray-400 transition-transform ${demoOpen ? 'rotate-180' : ''}`} />
-            </button>
-            {demoOpen && (
-              <div className="border-t border-gray-100">
-                {DEMO.map(group => (
-                  <div key={group.section}>
-                    <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest px-4 pt-3 pb-1">{group.section}</p>
-                    {group.accounts.map(d => (
-                      <button key={d.email} type="button"
-                        onClick={async () => {
-                          setDemoOpen(false);
-                          setLoading(true);
-                          try {
-                            const u = await login(d.email, 'password123');
-                            toast.success('Signed in successfully');
-                            navigate(getDashboard(u.role), { replace: true });
-                          } catch {
-                            toast.error('Demo account unavailable. Run db:seed in the backend.');
-                          } finally { setLoading(false); }
-                        }}
-                        className="w-full flex items-center justify-between px-4 py-2.5 hover:bg-gray-50 transition-colors text-left group">
-                        <div>
-                          <p className="text-sm font-medium text-gray-900">{d.label}</p>
-                          <p className="text-[11px] text-gray-400">{d.email}</p>
-                        </div>
-                        <ChevronRight size={13} className="text-gray-300 group-hover:text-gray-500 shrink-0" />
-                      </button>
-                    ))}
-                  </div>
+      <div className="mt-8 overflow-hidden rounded-xl border border-gray-200 bg-white">
+        <button type="button" onClick={() => setDemoOpen(o => !o)}
+          className="flex w-full items-center gap-3 px-5 py-4 text-left transition-colors hover:bg-gray-50">
+          <div className="flex -space-x-2">
+            {['Emeka Adeyemi', 'Amaka Nwosu', 'Tunde Adeyemi'].map(n => <Avatar key={n} name={n} size={28} ring />)}
+          </div>
+          <div className="flex-1">
+            <p className="text-sm font-semibold text-gray-900">Try a demo account</p>
+            <p className="text-xs text-gray-500">password: <span className="font-mono">password123</span></p>
+          </div>
+          <ChevronDown size={16} className={`text-gray-400 transition-transform ${demoOpen ? 'rotate-180' : ''}`} />
+        </button>
+        {demoOpen && (
+          <div className="animate-fade-in border-t border-gray-100 pb-2">
+            {DEMO.map(group => (
+              <div key={group.section}>
+                <p className="px-5 pb-1 pt-3 text-xs font-medium text-gray-500">{group.section}</p>
+                {group.accounts.map(d => (
+                  <button key={d.email} type="button"
+                    onClick={async () => {
+                      setDemoOpen(false);
+                      setLoading(true);
+                      try {
+                        const u = await withWakeNotice(login(d.email, 'password123'));
+                        toast.success(`Signed in as ${d.person}`);
+                        navigate(getDashboard(u.role), { replace: true });
+                      } catch (err) {
+                        toast.error(signInError(err, true));
+                      } finally { setLoading(false); }
+                    }}
+                    className="group flex w-full items-center gap-3 px-5 py-2.5 text-left transition-colors hover:bg-gray-50">
+                    <Avatar name={d.person} size={34} />
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-medium text-gray-900">{d.label}</p>
+                      <p className="text-xs text-gray-500">{d.email}</p>
+                    </div>
+                    <ChevronRight size={14} className="shrink-0 text-gray-300 group-hover:text-gray-600" />
+                  </button>
                 ))}
               </div>
-            )}
+            ))}
           </div>
-        </div>
+        )}
       </div>
-
-      <div className="text-center pb-8">
-        <p className="text-[11px] text-gray-400">
-          <Link to="/terms" className="hover:text-gray-700 transition-colors">Terms of service</Link>
-          {' · '}
-          <Link to="/privacy" className="hover:text-gray-700 transition-colors">Privacy policy</Link>
-          {' · '}
-          © {new Date().getFullYear()} FarmLink
-        </p>
-      </div>
-    </div>
+    </AuthShell>
   );
 }
