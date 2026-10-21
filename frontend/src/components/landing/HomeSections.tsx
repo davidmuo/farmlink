@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useLayoutEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { Bell, Check, Truck } from 'lucide-react';
 import BackgroundVideo from '../BackgroundVideo';
@@ -8,6 +8,7 @@ import HowItWorks from './HowItWorks';
 import UssdPhone from './UssdPhone';
 import FeatureBento from './FeatureBento';
 import { NAV_LINKS, edge } from './shared';
+import { setupReveals } from './reveal';
 import { PHOTOS, VIDEOS, pexels, pexelsSrcSet } from '../../lib/media';
 
 // A notification laid over a section video, styled like the in-app toasts
@@ -50,7 +51,10 @@ const MOSAIC: { photo?: number; alt?: string; tone?: string; box: string; drift:
 export default function HomeSections() {
   const root = useRef<HTMLDivElement>(null);
 
-  // GSAP and the scroll animations load once the browser is idle, so they don't stall the first frames
+  // Slide-ins and counters are prepared before the first paint, while the sections are still off screen
+  useLayoutEffect(() => (root.current ? setupReveals(root.current) : undefined), []);
+
+  // GSAP (the scroll-linked parallax) loads once the browser is idle, so it doesn't stall the first frames
   useEffect(() => {
     const scope = root.current;
     if (!scope) return;
