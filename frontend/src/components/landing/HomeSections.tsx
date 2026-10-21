@@ -3,10 +3,10 @@ import { Link } from 'react-router-dom';
 import { Bell, Check, Truck } from 'lucide-react';
 import BackgroundVideo from '../BackgroundVideo';
 import CropTicker from './CropTicker';
+import SplitHeading from './SplitHeading';
 import HowItWorks from './HowItWorks';
 import UssdPhone from './UssdPhone';
 import FeatureBento from './FeatureBento';
-import { useLandingMotion } from './motion';
 import { NAV_LINKS, edge } from './shared';
 import { PHOTOS, VIDEOS, pexels, pexelsSrcSet } from '../../lib/media';
 
@@ -49,7 +49,24 @@ const MOSAIC: { photo?: number; alt?: string; tone?: string; box: string; drift:
 
 export default function HomeSections() {
   const root = useRef<HTMLDivElement>(null);
-  useLandingMotion(root);
+
+  // GSAP and the scroll animations load once the browser is idle, so they don't stall the first frames
+  useEffect(() => {
+    const scope = root.current;
+    if (!scope) return;
+    let cleanup: (() => void) | undefined;
+    let cancelled = false;
+    const start = () => {
+      import('./motion').then(m => { if (!cancelled) cleanup = m.setupLandingMotion(scope); }).catch(() => {});
+    };
+    const hasIdle = typeof window.requestIdleCallback === 'function';
+    const idle = hasIdle ? window.requestIdleCallback(start, { timeout: 1500 }) : window.setTimeout(start, 600);
+    return () => {
+      cancelled = true;
+      if (hasIdle) window.cancelIdleCallback(idle); else window.clearTimeout(idle);
+      cleanup?.();
+    };
+  }, []);
 
   // Links like /#for-farmers land before these sections exist, so scroll once they do
   useEffect(() => {
@@ -74,7 +91,7 @@ export default function HomeSections() {
         <div className={`${edge} flex min-h-[100svh] flex-col justify-between gap-16 py-24 sm:py-28`}>
           <div>
             <p className="micro text-lime-300">For hotels, restaurants, schools and NGOs</p>
-            <h2 data-split className="display-lg mt-5">Post once.<br />Get committed supply.</h2>
+            <SplitHeading lines={['Post once.', 'Get committed supply.']} className="display-lg mt-5" seed={11} />
           </div>
 
           <div className="flex flex-col gap-10 lg:flex-row lg:items-end lg:justify-between">
@@ -114,7 +131,7 @@ export default function HomeSections() {
         <div className={`${edge} flex flex-col justify-between gap-14 py-20 lg:py-24`}>
           <div>
             <p className="micro text-forest-700">For farmers</p>
-            <h2 data-split className="display-lg mt-5 max-w-[12ch]">Sell what you grow, directly.</h2>
+            <SplitHeading lines={['Sell what you grow, directly.']} className="display-lg mt-5 max-w-[12ch]" seed={13} />
             <p data-rise className="micro mt-6 max-w-[48ch] text-forest-900/75">
               Browse open demands from verified buyers. Commit to supply what you already grow at a clear
               price, and track every step from the field to payment.
@@ -141,9 +158,8 @@ export default function HomeSections() {
         <div className={`${edge} grid min-h-[100svh] gap-14 py-20 sm:py-24 lg:grid-cols-[1fr_auto_1fr] lg:gap-10`}>
           <div className="lg:self-start">
             <p className="micro text-lime-300">USSD and SMS</p>
-            <h2 data-split className="mt-5 font-display text-[clamp(40px,4.6vw,84px)] font-light leading-[0.98] tracking-[-0.035em]">
-              No smartphone needed.
-            </h2>
+            <SplitHeading lines={['No smartphone needed.']} seed={17}
+              className="mt-5 font-display text-[clamp(40px,4.6vw,84px)] font-light leading-[0.98] tracking-[-0.035em]" />
             <p data-rise className="micro mt-6 max-w-[42ch] text-white/75">
               Farmers can browse demands, commit supply and check their orders by dialling a short code or
               replying to an SMS. It works on any handset, without mobile data.
@@ -173,7 +189,7 @@ export default function HomeSections() {
         <div className={`${edge} grid min-h-[92svh] gap-14 py-20 lg:grid-cols-2 lg:py-24`}>
           <div className="flex flex-col justify-between gap-12">
             <div>
-              <h2 data-split className="display-lg max-w-[13ch]">Ready to fix your supply chain?</h2>
+              <SplitHeading lines={['Ready to fix your supply chain?']} className="display-lg max-w-[13ch]" seed={19} />
               <p data-rise className="micro mt-6 max-w-[46ch] text-white/75">
                 Free for farmers. Buyers pay only on confirmed value. Create an account in a few minutes,
                 then post your first demand or browse the open ones.

@@ -21,14 +21,22 @@ export default defineConfig({
         ]
       },
       workbox: {
-        // App shell: every built JS/CSS chunk and the fonts are precached, so repeat visits load from disk
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2,webmanifest}'],
+        // Only the app shell is precached: files the first page load has already fetched. Precaching
+        // every chunk meant a 1 MB background download on a first visit, competing with the hero
+        // video. Other chunks are cached the first time they're used (see runtimeCaching).
+        globPatterns: ['index.html', 'assets/index-*.{js,css}', 'assets/react-*.js', 'fonts/*.woff2'],
         globIgnores: ['media/**'],
         navigateFallback: '/index.html',
         cleanupOutdatedCaches: true,
         clientsClaim: true,
         skipWaiting: true,
         runtimeCaching: [
+          {
+            // Code-split chunks: content-hashed, so a cached copy is always correct
+            urlPattern: ({ url, sameOrigin }) => sameOrigin && url.pathname.startsWith('/assets/'),
+            handler: 'CacheFirst',
+            options: { cacheName: 'app-chunks', expiration: { maxEntries: 120, maxAgeSeconds: 60 * 60 * 24 * 90 } },
+          },
           {
             // Profile and produce photos
             urlPattern: ({ url }) => url.origin === 'https://images.pexels.com',

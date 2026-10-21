@@ -27,18 +27,23 @@ export default function BackgroundVideo({ video, className = '', eager = false, 
   const src = small ? video.sm : video.lg;
 
   // A poster that's already cached (e.g. preloaded by index.html) shows at once, with no fade
-  useLayoutEffect(() => { if (posterRef.current?.complete) setPosterShown(true); }, []);
+  useLayoutEffect(() => {
+    const img = posterRef.current;
+    if (near && img?.complete && img.naturalWidth) setPosterShown(true);
+  }, [near]);
 
+  // Off-screen clips fetch nothing, not even the poster, until they're close to the viewport.
+  // (Browsers start lazy images up to ~2500px early, which is too soon on a long page.)
   useEffect(() => {
-    if (near || !allowVideo) return;
+    if (near) return;
     const el = wrapRef.current;
     if (!el) return;
     const io = new IntersectionObserver(([e]) => {
       if (e.isIntersecting) { setNear(true); io.disconnect(); }
-    }, { rootMargin: '600px 0px' });
+    }, { rootMargin: '900px 0px' });
     io.observe(el);
     return () => io.disconnect();
-  }, [near, allowVideo]);
+  }, [near]);
 
   useEffect(() => {
     const v = videoRef.current;
@@ -59,7 +64,7 @@ export default function BackgroundVideo({ video, className = '', eager = false, 
       <img src={video.blur} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover" />
       <img
         ref={posterRef}
-        src={poster}
+        src={near ? poster : undefined}
         alt=""
         aria-hidden="true"
         decoding="async"

@@ -113,20 +113,20 @@ export interface VideoSet { lg: string; sm: string; posterLg: string; posterSm: 
 
 export const VIDEOS: Record<'hero' | 'buyers' | 'farmer', VideoSet> = {
   hero: {
-    lg: '/media/hero-lg.d6153472.mp4', sm: '/media/hero-sm.490a9ff1.mp4',
-    posterLg: '/media/hero-poster-lg.dc0d7117.webp', posterSm: '/media/hero-poster-sm.31616f18.webp',
+    lg: '/media/hero-lg.0c498aa4.mp4', sm: '/media/hero-sm.255ee6a1.mp4',
+    posterLg: '/media/hero-poster-lg.7a8abc23.webp', posterSm: '/media/hero-poster-sm.f1e6703c.webp',
     blur: 'data:image/webp;base64,UklGRpQAAABXRUJQVlA4IIgAAADwAwCdASoYAAwAPu1iqU2ppaOiMAgBMB2JYgCsAYt8Zi2DRfuFEMgAAPJR5CWg8a9NUy1100IyNydr7JmAXkAruDwSSeCW6gQScmdKKP2FD2FsyVvFBSazDageN5GIgYoI/4l/DFpsrKohQBsVy43jT6RFqV7zyvXyCmBAZ3pRJdXSyM4fNAAA',
   },
   // Full-bleed buyers section: landscape on wide screens, the 4:5 cut on phones
   buyers: {
-    lg: '/media/supply-wide-lg.c833f478.mp4', sm: '/media/supply-lg.e6c4572d.mp4',
-    posterLg: '/media/supply-wide-poster.21d3bca4.webp', posterSm: '/media/supply-poster-lg.d2b5c25c.webp',
+    lg: '/media/supply-wide-lg.9cb67a1d.mp4', sm: '/media/supply-lg.e6c4572d.mp4',
+    posterLg: '/media/supply-wide-poster.046383d5.webp', posterSm: '/media/supply-poster-lg.d2b5c25c.webp',
     blur: 'data:image/webp;base64,UklGRn4AAABXRUJQVlA4IHIAAADQAwCdASoYAA4APu1iqU2ppaOiMAgBMB2JYwCsACK4NorOGwW9ZKAA/ryGdhY/7zIEFtjC9RQVyWh1ErKSN49xZEXdiacuBI1Z4NujMnE/gxr+d90tqbeAeDuRniepGesrPzdQwNHTju/nrBqt1j8YAAA=',
   },
   // Fills half the screen beside the farmers copy, so the desktop cut is 720x900
   farmer: {
-    lg: '/media/farmer-xl.b8114b6f.mp4', sm: '/media/farmer-sm.ce500c8a.mp4',
-    posterLg: '/media/farmer-xl-poster.dbed19be.webp', posterSm: '/media/farmer-poster-sm.013f700c.webp',
+    lg: '/media/farmer-xl.df766887.mp4', sm: '/media/farmer-sm.ce500c8a.mp4',
+    posterLg: '/media/farmer-xl-poster.23fec318.webp', posterSm: '/media/farmer-poster-sm.013f700c.webp',
     blur: 'data:image/webp;base64,UklGRtYAAABXRUJQVlA4IMoAAACQBQCdASoYAB4APu1qsFAppaSiqAqpMB2JZgC3uDTngRU7kooz8CErdYWoNeCALZR6S99+AAD+9NenPUTRfhmUubebT4ipj6XeXXx1OEzZ3kFDmkU7kD/AQDeYKSCddgW0+HQCx6BPHiWucGHsh7T+kPQ86g+O//CBA3rjikKLE9mR4q/lq6FlyPm7F2CUoWWbsVGR2m2Uv4KYLvVgjOap62ySXLhiw8tZHLPsmTkW+mtP/pCgElXb8uxjUECDEBIeJeSDj9n5rAAA',
   },
 };

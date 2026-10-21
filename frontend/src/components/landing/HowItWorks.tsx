@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Check, Truck } from 'lucide-react';
 import Avatar from '../Avatar';
 import CropThumb from '../CropThumb';
+import SplitHeading from './SplitHeading';
 import ReviewStars from '../ReviewStars';
 
 type Audience = 'buyers' | 'farmers';
@@ -190,7 +191,7 @@ export default function HowItWorks({ edge }: { edge: string }) {
     <section id="how-it-works" className="scroll-mt-16 bg-cream-100 py-20 text-forest-950 sm:py-28">
       <div className={edge}>
         <div className="grid gap-8 lg:grid-cols-12">
-          <h2 data-split className="display-lg lg:col-span-7">How it works</h2>
+          <SplitHeading lines={['How it works']} className="display-lg lg:col-span-7" seed={2} />
           <div className="lg:col-span-4 lg:col-start-9 lg:pt-3">
             <p data-rise className="micro text-forest-900/75">
               Three steps on each side. Buyers post what they need, farmers commit supply, and FarmLink
