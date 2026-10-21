@@ -26,7 +26,7 @@ function VideoNote({ icon: Icon, title, sub, className = '' }: { icon: typeof Be
 const FARMER_FACTS = [
   { big: <>Free</>,                                       label: 'To join and sell as a farmer' },
   { big: <><span data-count="3">3</span> steps</>,        label: 'From open demand to delivered order' },
-  { big: <><span data-count="12">12</span> crops</>,      label: 'Each with growing and storage tips' },
+  { big: <>Direct</>,                                     label: 'No brokers or market agents in between' },
   { big: <span className="font-mono tracking-[-0.06em]">*384*1#</span>, label: 'Browse and commit from any phone' },
 ];
 
