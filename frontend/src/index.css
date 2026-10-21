@@ -2,6 +2,8 @@
    Inter, self-hosted and subsetted (see public/fonts/LICENSES.txt): no third-party
    round trip, no render-blocking stylesheet, cached forever by content hash. */
 @font-face { font-family: 'Inter'; src: url('/fonts/inter-var.131e4894.woff2') format('woff2'); font-weight: 400 700; font-style: normal; font-display: swap; }
+/* Just the naira sign (subset of Inter), for text set in Host Grotesk, which lacks it */
+@font-face { font-family: 'FarmLink Naira'; src: url('/fonts/naira-var.68a5d323.woff2') format('woff2'); font-weight: 300 700; font-style: normal; font-display: swap; unicode-range: U+20A6; }
 @font-face { font-family: 'Host Grotesk'; src: url('/fonts/host-grotesk-var.62cd6b66.woff2') format('woff2'); font-weight: 300 600; font-style: normal; font-display: swap; }
 
 @tailwind base;

@@ -5,8 +5,8 @@ export default {
     extend: {
       fontFamily: {
         sans:    ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'],
-        // Headlines and the marketing pages; Inter follows so it can supply the ₦ sign
-        display: ['"Host Grotesk"', 'Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'],
+        // Headlines and the marketing pages; the naira font supplies ₦, which Host Grotesk lacks
+        display: ['"Host Grotesk"', '"FarmLink Naira"', 'Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'],
       },
       colors: {
         // Signature FarmLink green — used as the accent, never as body text on light surfaces

@@ -92,8 +92,10 @@ export default function Home() {
   // Paint the hero first; the sections below the fold render right after in an interruptible pass
   const [showRest, setShowRest] = useState(false);
 
-  // On slow connections the sections' code and crop photos would compete with the hero video,
-  // so they wait until it plays (or the page has loaded without one), at most 3s
+  // The sections' code and photos would otherwise share the connection with the hero video and
+  // make it stall, so they render once the video has buffered enough to play through (or the
+  // page has loaded without one). Scrolling, or 6s, starts them straight away. Their code is
+  // fetched early, when the video starts, so an early scroll doesn't wait on the network.
   useEffect(() => {
     let done = false;
     const start = () => {
@@ -107,13 +109,21 @@ export default function Home() {
       const id = requestAnimationFrame(() => setTimeout(start, 0));
       return () => cancelAnimationFrame(id);
     }
-    const onLoad = () => { if (!document.querySelector('video')) start(); };
+    const inHero = (e: Event) => (e.target as Element).closest?.('[data-hero]');
     // Media events don't bubble, but a capturing listener on the document still sees them
-    document.addEventListener('playing', start, { capture: true, once: true });
+    const onPlaying = (e: Event) => { if (inHero(e)) loadSections().catch(() => {}); };
+    const onBuffered = (e: Event) => { if (inHero(e)) start(); };
+    const onLoad = () => { if (!document.querySelector('[data-hero] video')) start(); };
+    const intents = ['wheel', 'touchstart', 'keydown', 'scroll'];
+    document.addEventListener('playing', onPlaying, true);
+    document.addEventListener('canplaythrough', onBuffered, true);
+    intents.forEach(ev => window.addEventListener(ev, start, { passive: true }));
     if (document.readyState === 'complete') onLoad(); else window.addEventListener('load', onLoad, { once: true });
-    const timer = setTimeout(start, 3000);
+    const timer = setTimeout(start, 6000);
     return () => {
-      document.removeEventListener('playing', start, { capture: true });
+      document.removeEventListener('playing', onPlaying, true);
+      document.removeEventListener('canplaythrough', onBuffered, true);
+      intents.forEach(ev => window.removeEventListener(ev, start));
       window.removeEventListener('load', onLoad);
       clearTimeout(timer);
     };
@@ -183,7 +193,8 @@ export default function Home() {
 
           <div className="flex items-end justify-between gap-10">
             {wide && (
-              <div className="mb-1 shrink-0">
+              // Sized like the card, so nothing in the hero moves when it arrives
+              <div className="mb-1 min-h-[256px] w-[340px] shrink-0">
                 <Suspense fallback={null}><HeroDemand /></Suspense>
               </div>
             )}

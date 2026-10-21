@@ -78,9 +78,11 @@ export function prefetchRolePages(role?: string) {
   idle(() => loaders.forEach(load => load().catch(() => {})));
 }
 
-// From the public pages, get the sign-in screens ready
+// From the public pages, get the sign-in screens ready. On the homepage this waits until the hero
+// video has had the connection to itself for a while.
 export function prefetchAuthPages() {
   const idle = (cb: () => void) =>
     'requestIdleCallback' in window ? (window as any).requestIdleCallback(cb, { timeout: 4000 }) : setTimeout(cb, 2000);
-  idle(() => { pages.login().catch(() => {}); pages.register().catch(() => {}); });
+  setTimeout(() => idle(() => { pages.login().catch(() => {}); pages.register().catch(() => {}); }),
+    window.location.pathname === '/' ? 5000 : 0);
 }

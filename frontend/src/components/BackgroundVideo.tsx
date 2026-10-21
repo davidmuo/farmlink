@@ -9,10 +9,12 @@ interface Props {
   label?: string;
 }
 
-// Ambient looping video that never shows a blank frame: an inline blur paints instantly,
-// the poster fades in over it, and the video crossfades in only once it is actually playing.
-// Off-screen clips don't download until they're close to the viewport, play only while
-// visible, and visitors on 2G / Data Saver or with reduced motion get the still poster.
+// Ambient looping video that never shows a blank frame or a stutter: an inline blur paints
+// instantly, the poster fades in over it, and the video crossfades in only once it is playing
+// AND the browser reports it can play through without stopping to buffer. Until then any
+// stalls happen behind the poster. Off-screen clips don't download until they're close to the
+// viewport, play only while visible, and visitors on 2G / Data Saver or with reduced motion
+// get the still poster.
 export default function BackgroundVideo({ video, className = '', eager = false, label }: Props) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -22,6 +24,7 @@ export default function BackgroundVideo({ video, className = '', eager = false, 
   const [near, setNear] = useState(eager);
   const [posterShown, setPosterShown] = useState(false);
   const [playing, setPlaying] = useState(false);
+  const [buffered, setBuffered] = useState(false);
 
   const poster = small ? video.posterSm : video.posterLg;
   const src = small ? video.sm : video.lg;
@@ -81,9 +84,11 @@ export default function BackgroundVideo({ video, className = '', eager = false, 
           loop
           playsInline
           autoPlay
-          preload={eager ? 'auto' : 'metadata'}
+          // Only rendered once the clip is near the viewport, so buffer it fully from there
+          preload="auto"
           onPlaying={() => setPlaying(true)}
-          className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-700 ${playing ? 'opacity-100' : 'opacity-0'}`}
+          onCanPlayThrough={() => setBuffered(true)}
+          className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-700 ${playing && buffered ? 'opacity-100' : 'opacity-0'}`}
         />
       )}
     </div>
