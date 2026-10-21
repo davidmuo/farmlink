@@ -93,9 +93,9 @@ export default function Home() {
   const [showRest, setShowRest] = useState(false);
 
   // The sections' code and photos would otherwise share the connection with the hero video and
-  // make it stall, so they render once the video has buffered enough to play through (or the
-  // page has loaded without one). Scrolling, or 6s, starts them straight away. Their code is
-  // fetched early, when the video starts, so an early scroll doesn't wait on the network.
+  // make it stall, so they render once the video has finished downloading (or the page has
+  // loaded without one). Scrolling, or 6s, starts them straight away. Their code is fetched
+  // early, when the video starts, so an early scroll doesn't wait on the network.
   useEffect(() => {
     let done = false;
     const start = () => {
@@ -112,17 +112,20 @@ export default function Home() {
     const inHero = (e: Event) => (e.target as Element).closest?.('[data-hero]');
     // Media events don't bubble, but a capturing listener on the document still sees them
     const onPlaying = (e: Event) => { if (inHero(e)) loadSections().catch(() => {}); };
-    const onBuffered = (e: Event) => { if (inHero(e)) start(); };
+    const fullyBuffered = (v: HTMLVideoElement) =>
+      v.duration > 0 && v.buffered.length > 0 && v.buffered.end(v.buffered.length - 1) >= v.duration - 0.25;
+    const onBuffered = (e: Event) => { if (inHero(e) && fullyBuffered(e.target as HTMLVideoElement)) start(); };
+    const bufferEvents = ['canplaythrough', 'progress', 'suspend'];
     const onLoad = () => { if (!document.querySelector('[data-hero] video')) start(); };
     const intents = ['wheel', 'touchstart', 'keydown', 'scroll'];
     document.addEventListener('playing', onPlaying, true);
-    document.addEventListener('canplaythrough', onBuffered, true);
+    bufferEvents.forEach(ev => document.addEventListener(ev, onBuffered, true));
     intents.forEach(ev => window.addEventListener(ev, start, { passive: true }));
     if (document.readyState === 'complete') onLoad(); else window.addEventListener('load', onLoad, { once: true });
     const timer = setTimeout(start, 6000);
     return () => {
       document.removeEventListener('playing', onPlaying, true);
-      document.removeEventListener('canplaythrough', onBuffered, true);
+      bufferEvents.forEach(ev => document.removeEventListener(ev, onBuffered, true));
       intents.forEach(ev => window.removeEventListener(ev, start));
       window.removeEventListener('load', onLoad);
       clearTimeout(timer);
