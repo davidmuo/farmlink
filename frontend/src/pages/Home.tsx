@@ -1,4 +1,4 @@
-import { lazy, startTransition, Suspense, useEffect, useState } from 'react';
+import { CSSProperties, lazy, startTransition, Suspense, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import BackgroundVideo from '../components/BackgroundVideo';
 import SplitChars from '../components/landing/SplitChars';
@@ -149,8 +149,10 @@ export default function Home() {
   const solid = scrolled && !menuOpen;
 
   return (
-    // One typeface for the whole page; Inter is only fetched if a ₦ sign needs it
-    <div className="min-h-screen bg-cream-100 font-display text-forest-950">
+    // One typeface for the whole page, in its non-swapping copy: the font is preloaded here, so
+    // text waits a moment for it instead of drawing in a fallback and reflowing
+    <div className="min-h-screen bg-cream-100 font-display text-forest-950"
+      style={{ '--display-face': '"Host Grotesk Block"' } as CSSProperties}>
 
       {/* ── Header ── */}
       <header className={`fixed inset-x-0 top-0 z-50 transition-colors duration-300 ${

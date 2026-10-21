@@ -5,8 +5,10 @@ export default {
     extend: {
       fontFamily: {
         sans:    ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'],
-        // Headlines and the marketing pages; the naira font supplies ₦, which Host Grotesk lacks
-        display: ['"Host Grotesk"', '"FarmLink Naira"', 'Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'],
+        // Headlines and the marketing pages; the naira font supplies ₦, which Host Grotesk lacks.
+        // A page can set --display-face to swap in another face (the homepage uses the
+        // non-swapping copy declared in index.css).
+        display: ['var(--display-face, "Host Grotesk")', '"FarmLink Naira"', 'Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'],
       },
       colors: {
         // Signature FarmLink green — used as the accent, never as body text on light surfaces

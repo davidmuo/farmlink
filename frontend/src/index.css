@@ -5,6 +5,9 @@
 /* Just the naira sign (subset of Inter), for text set in Host Grotesk, which lacks it */
 @font-face { font-family: 'FarmLink Naira'; src: url('/fonts/naira-var.68a5d323.woff2') format('woff2'); font-weight: 300 700; font-style: normal; font-display: swap; unicode-range: U+20A6; }
 @font-face { font-family: 'Host Grotesk'; src: url('/fonts/host-grotesk-var.62cd6b66.woff2') format('woff2'); font-weight: 300 600; font-style: normal; font-display: swap; }
+/* Same file for the homepage, where the font is preloaded: text waits for it (briefly) instead of
+   drawing in a fallback and visibly reflowing when it arrives */
+@font-face { font-family: 'Host Grotesk Block'; src: url('/fonts/host-grotesk-var.62cd6b66.woff2') format('woff2'); font-weight: 300 600; font-style: normal; font-display: block; }
 
 @tailwind base;
 @tailwind components;
