@@ -62,7 +62,9 @@ export default function Register() {
       navigate(form.role === 'buyer' ? '/buyer' : '/farmer', { replace: true });
     } catch (err: any) {
       toast.error(
-        !err.response ? "Can't reach the FarmLink server. Check your connection and try again."
+        !err.response ? (navigator.onLine
+          ? "FarmLink's server isn't responding right now. Please try again in a minute."
+          : "You're offline. Check your connection and try again.")
         : err.response.status >= 500 ? 'The server is having trouble right now. Please try again shortly.'
         : err.response?.data?.error || 'Registration failed'
       );

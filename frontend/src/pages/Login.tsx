@@ -43,7 +43,10 @@ async function withWakeNotice<T>(task: Promise<T>): Promise<T> {
 }
 
 function signInError(err: any, demo: boolean) {
-  if (!err?.response) return "Can't reach the FarmLink server. Check your connection and try again.";
+  // A crashed or restarting server answers without CORS headers, which looks like no response at all
+  if (!err?.response) return navigator.onLine
+    ? "FarmLink's server isn't responding right now. Please try again in a minute."
+    : "You're offline. Check your connection and try again.";
   if (err.response.status >= 500) return 'The server is having trouble reaching its database. Please try again shortly.';
   if (demo && err.response.status === 401) return 'This demo account is missing. The database needs its demo data loaded.';
   return err.response?.data?.error || 'Invalid email or password';
