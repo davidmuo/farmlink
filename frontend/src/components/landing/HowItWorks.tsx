@@ -1,6 +1,6 @@
 import { ReactNode, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Check, Truck } from 'lucide-react';
+import { Check, Truck } from 'lucide-react';
 import Avatar from '../Avatar';
 import CropThumb from '../CropThumb';
 import ReviewStars from '../ReviewStars';
@@ -10,7 +10,7 @@ type Audience = 'buyers' | 'farmers';
 /* ─── Small pieces of the app, one per step ─────────────────── */
 
 const Panel = ({ children }: { children: ReactNode }) => (
-  <div className="rounded-lg border border-gray-200 bg-white p-3 text-xs text-gray-700">{children}</div>
+  <div className="rounded-[4px] bg-white p-3 text-xs text-gray-700 shadow-[0_1px_0_rgba(23,58,42,0.06)]">{children}</div>
 );
 
 const Field = ({ label, children }: { label: string; children: ReactNode }) => (
@@ -179,48 +179,53 @@ const STEPS: Record<Audience, { title: string; sub: string; visual: () => JSX.El
   ],
 };
 
-export default function HowItWorks({ container }: { container: string }) {
+export default function HowItWorks({ edge }: { edge: string }) {
   const [who, setWho] = useState<Audience>('buyers');
+  // The first set of cards is brought in by the scroll animation; later switches animate themselves
+  const [switched, setSwitched] = useState(false);
+
+  const choose = (k: Audience) => { setWho(k); setSwitched(true); };
 
   return (
-    <section id="how-it-works" className="cv-auto scroll-mt-16 py-20 sm:py-28">
-      <div className={container}>
-        <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
-          <div>
-            <h2 className="text-[30px] font-semibold leading-[1.1] tracking-tight sm:text-[44px]">How it works</h2>
-            <p className="mt-3 max-w-xl text-lg text-gray-600">
-              Three steps on each side. FarmLink keeps one record in between, from the first order to the last delivery.
+    <section id="how-it-works" className="scroll-mt-16 bg-cream-100 py-20 text-forest-950 sm:py-28">
+      <div className={edge}>
+        <div className="grid gap-8 lg:grid-cols-12">
+          <h2 data-split className="display-lg lg:col-span-7">How it works</h2>
+          <div className="lg:col-span-4 lg:col-start-9 lg:pt-3">
+            <p data-rise className="micro text-forest-900/75">
+              Three steps on each side. Buyers post what they need, farmers commit supply, and FarmLink
+              keeps one record in between, from the first order to the last delivery.
             </p>
-          </div>
-
-          <div role="tablist" aria-label="Show steps for" className="inline-flex self-start rounded-lg bg-gray-100 p-1 md:self-auto">
-            {(['buyers', 'farmers'] as const).map(k => (
-              <button key={k} role="tab" aria-selected={who === k} onClick={() => setWho(k)}
-                className={`h-9 rounded-md px-4 text-sm font-medium transition-colors ${
-                  who === k ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-900'
-                }`}>
-                For {k}
-              </button>
-            ))}
+            <div role="tablist" aria-label="Show steps for" className="mt-6 flex gap-1.5">
+              {(['buyers', 'farmers'] as const).map(k => (
+                <button key={k} role="tab" aria-selected={who === k} onClick={() => choose(k)}
+                  className={`micro h-9 rounded-[3px] px-4 transition-colors ${
+                    who === k ? 'bg-forest-800 text-white' : 'bg-cream-200 text-forest-900 hover:bg-cream-300'
+                  }`}>
+                  For {k}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
-        <ol key={who} className="mt-12 grid gap-5 md:grid-cols-3">
+        <ol key={who} data-stagger={switched ? undefined : ''} className="mt-14 grid grid-cols-1 gap-4 md:grid-cols-3">
           {STEPS[who].map((s, i) => (
-            <li key={s.title} className="flex animate-rise flex-col overflow-hidden rounded-xl border border-gray-200 bg-white"
-              style={{ animationDelay: `${i * 90}ms` }}>
-              <div className="p-6">
-                <span className="tabular text-sm font-medium text-forest-700">0{i + 1}</span>
-                <h3 className="mt-3 text-xl font-semibold">{s.title}</h3>
-                <p className="mt-2 text-md leading-relaxed text-gray-600">{s.sub}</p>
+            <li key={s.title} className={`flex min-h-[440px] flex-col rounded-[4px] bg-cream-200/70 p-5 ${switched ? 'animate-rise' : ''}`}
+              style={switched ? { animationDelay: `${i * 90}ms` } : undefined}>
+              <div className="micro flex justify-between text-forest-900/55">
+                <span>Step 0{i + 1}</span>
+                <span>For {who}</span>
               </div>
-              <div className="mt-auto border-t border-gray-200 bg-gray-50 p-5"><s.visual /></div>
+              <h3 className="mt-10 font-display text-[30px] font-light leading-[1.05] tracking-[-0.02em]">{s.title}</h3>
+              <p className="mt-3 max-w-[36ch] text-[15px] leading-relaxed text-forest-900/70">{s.sub}</p>
+              <div className="mt-auto pt-8"><s.visual /></div>
             </li>
           ))}
         </ol>
 
-        <Link to="/register" className="mt-10 inline-flex items-center gap-1.5 text-md font-medium text-forest-700 hover:text-forest-900">
-          {who === 'buyers' ? 'Post your first demand' : 'Start selling'} <ArrowRight size={16} />
+        <Link to="/register" className="fm-btn fm-btn-line mt-10">
+          {who === 'buyers' ? 'Post your first demand' : 'Start selling'}
         </Link>
       </div>
     </section>

@@ -11,13 +11,12 @@
     <style>
       /* Homepage boot shell: the hero backdrop paints straight from HTML, before any JS.
          React replaces it with the identical hero on first render. */
-      #boot { display: none; }
-      html[data-boot='home'] #boot { display: block; position: absolute; top: 0; left: 0; right: 0; height: 560px; background: #0A1C14; overflow: hidden; }
-      @media (min-width: 640px) { html[data-boot='home'] #boot { height: 640px; } }
-      @media (min-width: 1024px) { html[data-boot='home'] #boot { height: 88vh; } }
+      /* System font: the empty-alt image would otherwise make the browser fetch the app font early */
+      #boot { display: none; font-family: sans-serif; }
+      html[data-boot='home'] #boot { display: block; position: absolute; top: 0; left: 0; right: 0; height: 100vh; height: 100svh; min-height: 600px; background: #0A1C14; overflow: hidden; }
       #boot img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
       #boot::after { content: ''; position: absolute; inset: 0;
-        background: linear-gradient(to top, rgba(10,28,20,.9), rgba(10,28,20,.5) 50%, rgba(10,28,20,.4)); }
+        background: linear-gradient(180deg, rgba(10,28,20,.55) 0%, rgba(10,28,20,.1) 38%, rgba(10,28,20,.15) 58%, rgba(10,28,20,.78) 100%); }
     </style>
     <script>
       // Start the homepage hero poster (the largest thing on screen) before any JS loads.
@@ -34,6 +33,14 @@
         l.href = window.__heroPoster;
         l.setAttribute('fetchpriority', 'high');
         document.head.appendChild(l);
+        // The headline typeface; keep the path in sync with the @font-face in src/index.css
+        var f = document.createElement('link');
+        f.rel = 'preload';
+        f.as = 'font';
+        f.type = 'font/woff2';
+        f.crossOrigin = 'anonymous';
+        f.href = '/fonts/host-grotesk-var.62cd6b66.woff2';
+        document.head.appendChild(f);
       })();
     </script>
   </head>

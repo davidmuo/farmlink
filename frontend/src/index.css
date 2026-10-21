@@ -2,6 +2,7 @@
    Inter, self-hosted and subsetted (see public/fonts/LICENSES.txt): no third-party
    round trip, no render-blocking stylesheet, cached forever by content hash. */
 @font-face { font-family: 'Inter'; src: url('/fonts/inter-var.131e4894.woff2') format('woff2'); font-weight: 400 700; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Host Grotesk'; src: url('/fonts/host-grotesk-var.62cd6b66.woff2') format('woff2'); font-weight: 300 600; font-style: normal; font-display: swap; }
 
 @tailwind base;
 @tailwind components;
@@ -184,7 +185,7 @@
   .page-header {
     @apply flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6;
   }
-  .page-title    { @apply text-2xl font-semibold text-gray-900 tracking-tight; }
+  .page-title    { @apply font-display text-2xl font-semibold text-gray-900 tracking-tight; }
   .page-subtitle { @apply text-sm text-gray-500 mt-1; }
   .section-title { @apply text-sm font-semibold text-gray-700 mb-3; }
 
@@ -215,6 +216,29 @@
     @apply fixed inset-y-0 right-0 w-80 bg-white border-l
     border-gray-200 flex flex-col z-50;
   }
+
+  /* ─── Marketing pages ─────────────────────────────────────── */
+  /* Small uppercase copy for labels, navigation and supporting text */
+  .micro { @apply text-[11px] font-medium uppercase leading-[1.6] tracking-[0.06em]; }
+
+  /* Large, light headlines */
+  .display-xl { @apply font-display text-[clamp(44px,7.4vw,136px)] font-light leading-[0.95] tracking-[-0.035em]; }
+  .display-lg { @apply font-display text-[clamp(40px,5.6vw,100px)] font-light leading-[0.98] tracking-[-0.035em]; }
+  .display-md { @apply font-display text-[clamp(30px,3vw,48px)] font-light leading-[1.02] tracking-[-0.025em]; }
+
+  /* Square buttons with a dot either side of the label */
+  .fm-btn {
+    @apply inline-flex h-10 items-center justify-center gap-2.5 whitespace-nowrap rounded-[3px] border px-4
+    text-[11px] font-medium uppercase tracking-[0.08em] transition-colors duration-200
+    focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-300 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent;
+  }
+  .fm-btn::before, .fm-btn::after { content: '•'; @apply text-[9px] opacity-60 transition-transform duration-200; }
+  .fm-btn:hover::before { transform: translateX(-3px); }
+  .fm-btn:hover::after  { transform: translateX(3px); }
+  .fm-btn-light   { @apply border-white bg-white text-forest-950 hover:bg-cream-100; }
+  .fm-btn-outline { @apply border-white/55 text-white hover:border-white hover:bg-white/10; }
+  .fm-btn-dark    { @apply border-forest-800 bg-forest-800 text-white hover:bg-forest-700; }
+  .fm-btn-line    { @apply border-forest-900/30 text-forest-900 hover:border-forest-900/60 hover:bg-forest-900/5; }
 
   /* ─── Selectable option card (radio-like) ─────────────────── */
   .option-card {

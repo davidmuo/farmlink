@@ -5,7 +5,8 @@ export default {
     extend: {
       fontFamily: {
         sans:    ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'],
-        display: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'],
+        // Headlines and the marketing pages; Inter follows so it can supply the ₦ sign
+        display: ['"Host Grotesk"', 'Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'],
       },
       colors: {
         // Signature FarmLink green — used as the accent, never as body text on light surfaces
@@ -124,6 +125,8 @@ export default {
         'rise':     'rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) both',
         'grow-x':   'growX 1.4s cubic-bezier(0.22, 1, 0.36, 1) 0.6s both',
         'caret':    'caret 1s steps(1) infinite',
+        'char':     'charIn 0.9s cubic-bezier(0.22, 1, 0.36, 1) both',
+        'menu':     'menuIn 0.45s cubic-bezier(0.22, 1, 0.36, 1) both',
       },
       keyframes: {
         fadeIn:    { from: { opacity: '0' },                              to: { opacity: '1' } },
@@ -134,6 +137,8 @@ export default {
         rise:      { from: { opacity: '0', transform: 'translateY(16px)' }, to: { opacity: '1', transform: 'translateY(0)' } },
         growX:     { from: { transform: 'scaleX(0)' }, to: { transform: 'scaleX(1)' } },
         caret:     { '0%, 100%': { opacity: '1' }, '50%': { opacity: '0' } },
+        charIn:    { from: { opacity: '0', filter: 'blur(8px)' }, to: { opacity: '1', filter: 'blur(0)' } },
+        menuIn:    { from: { clipPath: 'inset(0 0 100% 0)' }, to: { clipPath: 'inset(0 0 0% 0)' } },
       },
     },
   },

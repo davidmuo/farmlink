@@ -5,4 +5,5 @@ export const NAV_LINKS = [
   { label: 'Any phone',    href: '#any-phone'    },
 ];
 
-export const container = 'mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8';
+// Content runs to a small gutter at the screen edges rather than a centred column
+export const edge = 'px-5 md:px-8 xl:px-10';

@@ -111,20 +111,22 @@ export const PHOTOS = {
 // so they can be cached forever.
 export interface VideoSet { lg: string; sm: string; posterLg: string; posterSm: string; blur: string; }
 
-export const VIDEOS: Record<'hero' | 'supply' | 'farmer', VideoSet> = {
+export const VIDEOS: Record<'hero' | 'buyers' | 'farmer', VideoSet> = {
   hero: {
     lg: '/media/hero-lg.d6153472.mp4', sm: '/media/hero-sm.490a9ff1.mp4',
     posterLg: '/media/hero-poster-lg.dc0d7117.webp', posterSm: '/media/hero-poster-sm.31616f18.webp',
     blur: 'data:image/webp;base64,UklGRpQAAABXRUJQVlA4IIgAAADwAwCdASoYAAwAPu1iqU2ppaOiMAgBMB2JYgCsAYt8Zi2DRfuFEMgAAPJR5CWg8a9NUy1100IyNydr7JmAXkAruDwSSeCW6gQScmdKKP2FD2FsyVvFBSazDageN5GIgYoI/4l/DFpsrKohQBsVy43jT6RFqV7zyvXyCmBAZ3pRJdXSyM4fNAAA',
   },
-  supply: {
-    lg: '/media/supply-lg.e6c4572d.mp4', sm: '/media/supply-sm.35f5fd34.mp4',
-    posterLg: '/media/supply-poster-lg.d2b5c25c.webp', posterSm: '/media/supply-poster-sm.90d9365c.webp',
-    blur: 'data:image/webp;base64,UklGRsgAAABXRUJQVlA4ILwAAAAQBQCdASoYAB4APu1gq1AppSOisBgIATAdiWMAuwW0QMfKTwbZeNqQGEVTk0z+sWPoAP7axcmSImr5TFNUjvGHMI2mmfQad5jxzAaIp1viNUfb9qkK70BMtLXFlNF6y9zDWpYd8jIWtZt9sdJZvoP8PJb3/q7vddEWYc1LgWsv+S7DNEy4zG8fZMHax5mERjxf3iBuy7nWHGfHgGYsjGk1uuOc5V4kgM769WhMGfR14Ybc4ywCJcMruAAAAA==',
+  // Full-bleed buyers section: landscape on wide screens, the 4:5 cut on phones
+  buyers: {
+    lg: '/media/supply-wide-lg.c833f478.mp4', sm: '/media/supply-lg.e6c4572d.mp4',
+    posterLg: '/media/supply-wide-poster.21d3bca4.webp', posterSm: '/media/supply-poster-lg.d2b5c25c.webp',
+    blur: 'data:image/webp;base64,UklGRn4AAABXRUJQVlA4IHIAAADQAwCdASoYAA4APu1iqU2ppaOiMAgBMB2JYwCsACK4NorOGwW9ZKAA/ryGdhY/7zIEFtjC9RQVyWh1ErKSN49xZEXdiacuBI1Z4NujMnE/gxr+d90tqbeAeDuRniepGesrPzdQwNHTju/nrBqt1j8YAAA=',
   },
+  // Fills half the screen beside the farmers copy, so the desktop cut is 720x900
   farmer: {
-    lg: '/media/farmer-lg.624bb880.mp4', sm: '/media/farmer-sm.ce500c8a.mp4',
-    posterLg: '/media/farmer-poster-lg.5ed4c13f.webp', posterSm: '/media/farmer-poster-sm.013f700c.webp',
+    lg: '/media/farmer-xl.b8114b6f.mp4', sm: '/media/farmer-sm.ce500c8a.mp4',
+    posterLg: '/media/farmer-xl-poster.dbed19be.webp', posterSm: '/media/farmer-poster-sm.013f700c.webp',
     blur: 'data:image/webp;base64,UklGRtYAAABXRUJQVlA4IMoAAACQBQCdASoYAB4APu1qsFAppaSiqAqpMB2JZgC3uDTngRU7kooz8CErdYWoNeCALZR6S99+AAD+9NenPUTRfhmUubebT4ipj6XeXXx1OEzZ3kFDmkU7kD/AQDeYKSCddgW0+HQCx6BPHiWucGHsh7T+kPQ86g+O//CBA3rjikKLE9mR4q/lq6FlyPm7F2CUoWWbsVGR2m2Uv4KYLvVgjOap62ySXLhiw8tZHLPsmTkW+mtP/pCgElXb8uxjUECDEBIeJeSDj9n5rAAA',
   },
 };

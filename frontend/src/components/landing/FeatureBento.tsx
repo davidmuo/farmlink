@@ -5,14 +5,18 @@ import CropThumb from '../CropThumb';
 import DeliveryTrack from '../DeliveryTrack';
 import ReviewStars from '../ReviewStars';
 
-function Card({ title, sub, className = '', children }: { title: string; sub: string; className?: string; children: ReactNode }) {
+interface CardProps { n: number; who: string; title: string; sub: string; className?: string; children: ReactNode }
+
+function Card({ n, who, title, sub, className = '', children }: CardProps) {
   return (
-    <div className={`flex flex-col overflow-hidden rounded-xl border border-gray-200 bg-white ${className}`}>
-      <div className="p-6 pb-0">
-        <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
-        <p className="mt-1 text-md leading-relaxed text-gray-600">{sub}</p>
+    <div className={`flex min-h-[330px] flex-col rounded-[4px] bg-cream-50 p-5 ${className}`}>
+      <div className="micro flex justify-between text-forest-900/50">
+        <span>0{n}</span>
+        <span>{who}</span>
       </div>
-      <div className="mt-auto p-6 pt-5 text-xs">{children}</div>
+      <h3 className="mt-8 font-display text-[26px] font-light leading-[1.05] tracking-[-0.02em] text-forest-950">{title}</h3>
+      <p className="mt-2 max-w-[42ch] text-[15px] leading-relaxed text-forest-900/70">{sub}</p>
+      <div className="mt-auto pt-6 text-xs">{children}</div>
     </div>
   );
 }
@@ -52,7 +56,7 @@ function Conversation() {
     <div className="space-y-2">
       <div className="flex items-end gap-2">
         <Avatar name="Emeka Adeyemi" size={22} />
-        <p className="max-w-[80%] rounded-lg rounded-bl-sm bg-gray-100 px-3 py-2 text-gray-800">Can you deliver Thursday instead of Friday?</p>
+        <p className="max-w-[80%] rounded-lg rounded-bl-sm bg-cream-200 px-3 py-2 text-gray-800">Can you deliver Thursday instead of Friday?</p>
       </div>
       <div className="flex items-end justify-end gap-2">
         <p className="max-w-[80%] rounded-lg rounded-br-sm bg-forest-800 px-3 py-2 text-white">Yes. Thursday, 7am at the service gate.</p>
@@ -64,7 +68,7 @@ function Conversation() {
 
 function Rating() {
   return (
-    <div className="rounded-lg bg-gray-50 p-3">
+    <div className="rounded-[4px] bg-white p-3">
       <ReviewStars rating={5} size={13} />
       <p className="mt-2 text-gray-700">“Consistent grade and on time every week.”</p>
       <div className="mt-2.5 flex items-center gap-2">
@@ -86,7 +90,7 @@ function Delivery() {
         </div>
       </div>
       {/* The track is wider than a phone column, so it scrolls sideways there */}
-      <div className="scrollbar-hide -mx-6 mt-4 overflow-x-auto px-6">
+      <div className="scrollbar-hide -mx-5 mt-4 overflow-x-auto px-5">
         <DeliveryTrack status="in_transit" />
       </div>
     </div>
@@ -95,7 +99,7 @@ function Delivery() {
 
 function Dispute() {
   return (
-    <div className="rounded-lg border border-gray-200 p-3">
+    <div className="rounded-[4px] bg-white p-3">
       <div className="flex items-center justify-between gap-2">
         <p className="font-medium text-gray-900">Short delivery</p>
         <span className="badge-amber">Under review</span>
@@ -108,7 +112,7 @@ function Dispute() {
 function Assistant() {
   return (
     <div className="space-y-2">
-      <p className="ml-auto w-fit max-w-[85%] rounded-lg rounded-br-sm bg-gray-100 px-3 py-2 text-gray-800">When should I harvest cassava?</p>
+      <p className="ml-auto w-fit max-w-[85%] rounded-lg rounded-br-sm bg-cream-200 px-3 py-2 text-gray-800">When should I harvest cassava?</p>
       <div className="flex gap-2">
         <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-forest-800 text-white"><Sparkles size={12} /></span>
         <p className="text-gray-700">Most varieties are ready 9 to 12 months after planting. Lift one plant first and check the root size.</p>
@@ -117,30 +121,37 @@ function Assistant() {
   );
 }
 
-export default function FeatureBento({ container }: { container: string }) {
+export default function FeatureBento({ edge }: { edge: string }) {
   return (
-    <section className="cv-auto bg-cream-100 py-20 sm:py-28">
-      <div className={container}>
-        <h2 className="text-[30px] font-semibold leading-[1.1] tracking-tight sm:text-[44px]">Everything an order needs</h2>
-        <p className="mt-3 max-w-xl text-lg text-gray-600">From the first price to the final review, it all happens in one place.</p>
+    <section className="bg-cream-200 py-20 text-forest-950 sm:py-28">
+      <div className={edge}>
+        <div className="grid gap-8 lg:grid-cols-12">
+          <h2 data-split className="display-lg lg:col-span-8">Everything an order needs</h2>
+          <p data-rise className="micro text-forest-900/75 lg:col-span-3 lg:col-start-10 lg:pt-3">
+            From the first price to the final review, every step of an order happens in one place, with the
+            same record for the buyer and the farmer.
+          </p>
+        </div>
 
-        <div className="mt-12 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <Card className="md:col-span-2" title="Market prices" sub="Reference prices per crop, set by FarmLink, so offers start from a fair number.">
+        <div data-stagger className="mt-14 grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-4">
+          <Card n={1} who="Buyers and farmers" className="md:col-span-2" title="Market prices"
+            sub="Reference prices per crop, set by FarmLink, so offers start from a fair number.">
             <PriceRanges />
           </Card>
-          <Card title="Messaging" sub="Each order has its own conversation.">
+          <Card n={2} who="Per order" title="Messaging" sub="Each order has its own conversation.">
             <Conversation />
           </Card>
-          <Card title="Ratings and reviews" sub="Reputations come from real trades.">
+          <Card n={3} who="After delivery" title="Ratings and reviews" sub="Reputations come from real trades.">
             <Rating />
           </Card>
-          <Card className="md:col-span-2" title="Delivery tracking" sub="Orders move from accepted to in transit to delivered, then the buyer confirms receipt.">
+          <Card n={4} who="Both sides" className="md:col-span-2" title="Delivery tracking"
+            sub="Orders move from accepted to in transit to delivered, then the buyer confirms receipt.">
             <Delivery />
           </Card>
-          <Card title="Dispute resolution" sub="Either side can report a problem and an admin reviews it.">
+          <Card n={5} who="Admin reviewed" title="Dispute resolution" sub="Either side can report a problem and an admin reviews it.">
             <Dispute />
           </Card>
-          <Card title="Farming assistant" sub="Answers on crops, pests, diseases and soil.">
+          <Card n={6} who="Farmers" title="Farming assistant" sub="Answers on crops, pests, diseases and soil.">
             <Assistant />
           </Card>
         </div>
