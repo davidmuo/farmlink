@@ -4,13 +4,14 @@ import BackgroundVideo from '../components/BackgroundVideo';
 import SplitChars from '../components/landing/SplitChars';
 import { NAV_LINKS, edge } from '../components/landing/shared';
 import { VIDEOS } from '../lib/media';
+import { withReload } from '../lib/chunks';
 
 // Everything below the hero is its own chunk, fetched once the hero has painted
 const loadSections = () => import('../components/landing/HomeSections');
-const HomeSections = lazy(loadSections);
+const HomeSections = lazy(withReload(loadSections));
 
 // The demand card in the hero only fits on wide screens; elsewhere it is never downloaded
-const HeroDemand = lazy(() => import('../components/landing/HeroDemand'));
+const HeroDemand = lazy(withReload(() => import('../components/landing/HeroDemand')));
 const WIDE = '(min-width: 1280px)';
 
 // Holds the space under the hero (the crop band, then cream) until the sections arrive

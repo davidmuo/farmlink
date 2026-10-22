@@ -5,38 +5,39 @@ import { NotificationProvider } from './context/NotificationContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Spinner from './components/Spinner';
 import { pages, prefetchAuthPages } from './lib/prefetch';
+import { withReload } from './lib/chunks';
 
 import Home from './pages/Home';
 
 // Every other screen is its own chunk, so the landing page doesn't download the dashboards
-const Login = lazy(pages.login);
-const Register = lazy(pages.register);
-const Profile = lazy(pages.profile);
-const Reviews = lazy(pages.reviews);
-const Terms = lazy(pages.terms);
-const Privacy = lazy(pages.privacy);
+const Login = lazy(withReload(pages.login));
+const Register = lazy(withReload(pages.register));
+const Profile = lazy(withReload(pages.profile));
+const Reviews = lazy(withReload(pages.reviews));
+const Terms = lazy(withReload(pages.terms));
+const Privacy = lazy(withReload(pages.privacy));
 
-const DashboardLayout = lazy(pages.dashboardLayout);
+const DashboardLayout = lazy(withReload(pages.dashboardLayout));
 
-const BuyerDashboard = lazy(pages.buyerDashboard);
-const PostDemand = lazy(pages.postDemand);
-const MyDemands = lazy(pages.myDemands);
-const DemandDetail = lazy(pages.demandDetail);
-const BuyerCommitments = lazy(pages.buyerCommitments);
-const BuyerMessages = lazy(pages.messages);
+const BuyerDashboard = lazy(withReload(pages.buyerDashboard));
+const PostDemand = lazy(withReload(pages.postDemand));
+const MyDemands = lazy(withReload(pages.myDemands));
+const DemandDetail = lazy(withReload(pages.demandDetail));
+const BuyerCommitments = lazy(withReload(pages.buyerCommitments));
+const BuyerMessages = lazy(withReload(pages.messages));
 
-const FarmerDashboard = lazy(pages.farmerDashboard);
-const BrowseDemands = lazy(pages.browseDemands);
-const FarmerDemandDetail = lazy(pages.farmerDemandDetail);
-const MyCommitments = lazy(pages.myCommitments);
-const FarmRecords = lazy(pages.farmRecords);
-const SmsInbox = lazy(pages.smsInbox);
-const UssdSimulator = lazy(pages.ussdSimulator);
-const FarmerMessages = lazy(pages.messages);
+const FarmerDashboard = lazy(withReload(pages.farmerDashboard));
+const BrowseDemands = lazy(withReload(pages.browseDemands));
+const FarmerDemandDetail = lazy(withReload(pages.farmerDemandDetail));
+const MyCommitments = lazy(withReload(pages.myCommitments));
+const FarmRecords = lazy(withReload(pages.farmRecords));
+const SmsInbox = lazy(withReload(pages.smsInbox));
+const UssdSimulator = lazy(withReload(pages.ussdSimulator));
+const FarmerMessages = lazy(withReload(pages.messages));
 
-const AdminDashboard = lazy(pages.adminDashboard);
-const AdminUsers = lazy(pages.adminUsers);
-const AuditLogs = lazy(pages.auditLogs);
+const AdminDashboard = lazy(withReload(pages.adminDashboard));
+const AdminUsers = lazy(withReload(pages.adminUsers));
+const AuditLogs = lazy(withReload(pages.auditLogs));
 
 const PUBLIC_PATHS = ['/', '/login', '/register', '/terms', '/privacy'];
 

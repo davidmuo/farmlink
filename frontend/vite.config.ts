@@ -21,21 +21,34 @@ export default defineConfig({
         ]
       },
       workbox: {
-        // Only the app shell is precached: files the first page load has already fetched. Precaching
-        // every chunk meant a 1 MB background download on a first visit, competing with the hero
-        // video. Other chunks are cached the first time they're used (see runtimeCaching).
-        globPatterns: ['index.html', 'assets/index-*.{js,css}', 'assets/react-*.js', 'fonts/*.woff2'],
+        // Only the core code and fonts are precached: files the first page load has already
+        // fetched. Precaching every chunk meant a 1 MB background download on a first visit,
+        // competing with the hero video. Other chunks are cached the first time they're used.
+        // The page itself is not served from the precache (see the navigation rule below), so a
+        // visitor is never handed an old page whose code files a newer deploy has removed.
+        globPatterns: ['assets/index-*.{js,css}', 'assets/react-*.js', 'fonts/*.woff2'],
         globIgnores: ['media/**'],
-        navigateFallback: '/index.html',
         cleanupOutdatedCaches: true,
         clientsClaim: true,
         skipWaiting: true,
         runtimeCaching: [
           {
-            // Code-split chunks: content-hashed, so a cached copy is always correct
+            // Pages: always the current version from the network; the cached copy is only for
+            // when the network is down or very slow
+            urlPattern: ({ request }) => request.mode === 'navigate',
+            handler: 'NetworkFirst',
+            options: { cacheName: 'pages', networkTimeoutSeconds: 4, expiration: { maxEntries: 30 } },
+          },
+          {
+            // Code-split chunks: content-hashed, so a cached copy is always correct. Only real
+            // responses are kept (missing files now get a 404 from netlify.toml, not the app page).
             urlPattern: ({ url, sameOrigin }) => sameOrigin && url.pathname.startsWith('/assets/'),
             handler: 'CacheFirst',
-            options: { cacheName: 'app-chunks', expiration: { maxEntries: 120, maxAgeSeconds: 60 * 60 * 24 * 90 } },
+            options: {
+              cacheName: 'app-chunks-v2',
+              cacheableResponse: { statuses: [200] },
+              expiration: { maxEntries: 120, maxAgeSeconds: 60 * 60 * 24 * 90 },
+            },
           },
           {
             // Profile and produce photos

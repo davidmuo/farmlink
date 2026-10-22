@@ -9,6 +9,24 @@
   VITE_API_URL = "https://farmlink-2co1.onrender.com"
   NODE_VERSION = "20"
 
+# Code, media and fonts from an older deploy that no longer exist get a real 404. Without
+# these, the single-page rule below would answer with index.html (HTTP 200), and a page still
+# open from the older deploy would try to run that HTML as code and crash.
+[[redirects]]
+  from   = "/assets/*"
+  to     = "/404.html"
+  status = 404
+
+[[redirects]]
+  from   = "/media/*"
+  to     = "/404.html"
+  status = 404
+
+[[redirects]]
+  from   = "/fonts/*"
+  to     = "/404.html"
+  status = 404
+
 # Single-page app: every route serves index.html
 [[redirects]]
   from   = "/*"
