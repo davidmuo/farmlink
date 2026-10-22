@@ -1,8 +1,8 @@
-import { CSSProperties, lazy, startTransition, Suspense, useEffect, useState } from 'react';
+import { CSSProperties, lazy, startTransition, Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import BackgroundVideo from '../components/BackgroundVideo';
 import SplitChars from '../components/landing/SplitChars';
-import { NAV_LINKS, edge } from '../components/landing/shared';
+import { NAV_LINKS, edge, scrollToSection, SectionTarget } from '../components/landing/shared';
 import { VIDEOS } from '../lib/media';
 import { withReload } from '../lib/chunks';
 
@@ -22,13 +22,6 @@ const restPlaceholder = (
   </>
 );
 
-// Jump to a section, or let the sections scroll there themselves once they have loaded
-function goTo(hash: string) {
-  const el = document.querySelector(hash);
-  if (el) el.scrollIntoView({ behavior: 'smooth' });
-  else window.location.hash = hash;
-}
-
 function MenuGlyph({ open }: { open: boolean }) {
   return (
     <span aria-hidden="true" className="relative inline-block h-2.5 w-3.5">
@@ -38,14 +31,14 @@ function MenuGlyph({ open }: { open: boolean }) {
   );
 }
 
-function SiteMenu({ onClose }: { onClose: () => void }) {
+function SiteMenu({ onClose, onNavigate }: { onClose: () => void; onNavigate: (hash: string) => void }) {
   return (
     <div id="site-menu" className="fixed inset-0 z-40 flex animate-menu flex-col bg-forest-950 text-white">
       <nav aria-label="Sections" className={`${edge} flex flex-1 flex-col justify-center pt-16`}>
         <ul className="border-t border-white/15">
           {NAV_LINKS.map((l, i) => (
             <li key={l.href} className="animate-rise border-b border-white/15" style={{ animationDelay: `${120 + i * 60}ms` }}>
-              <a href={l.href} onClick={e => { e.preventDefault(); onClose(); requestAnimationFrame(() => goTo(l.href)); }}
+              <a href={l.href} onClick={e => { e.preventDefault(); onClose(); requestAnimationFrame(() => onNavigate(l.href)); }}
                 className="group flex items-baseline justify-between gap-6 py-4 sm:py-5">
                 <span className="font-display text-[clamp(36px,6vw,88px)] font-light leading-none tracking-[-0.035em] transition-transform duration-300 group-hover:translate-x-2">
                   {l.label}
@@ -90,13 +83,28 @@ export default function Home() {
     return () => { live = false; clearTimeout(timer); };
   }, []);
 
-  // Paint the hero first; the sections below the fold render right after in an interruptible pass
-  const [showRest, setShowRest] = useState(false);
+  // A link straight to a section (e.g. /#for-farmers), read once on arrival
+  const [initialHash] = useState(() => (/^#[\w-]+$/.test(window.location.hash) ? window.location.hash : ''));
+  // A section to scroll to once the sections below the hero exist. A direct link jumps there
+  // (a smooth scroll on arrival gets cut short as the page settles); a menu click glides.
+  const [pending, setPending] = useState<SectionTarget | null>(initialHash ? { hash: initialHash, smooth: false } : null);
+  const clearPending = useCallback(() => setPending(null), []);
 
-  // The sections' code and photos would otherwise share the connection with the hero video and
-  // make it stall, so they render once the video has finished downloading (or the page has
-  // loaded without one). Scrolling, or 6s, starts them straight away. Their code is fetched
-  // early, when the video starts, so an early scroll doesn't wait on the network.
+  // The homepage always opens at the top. Restoring an old scroll position (the browser default
+  // on reload) made the page jump past the hero by itself as the sections arrived. A #section
+  // from a direct link is used once, then dropped from the address for the same reason.
+  useEffect(() => {
+    if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+    if (initialHash) history.replaceState(null, '', window.location.pathname + window.location.search);
+    else window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
+  }, [initialHash]);
+
+  // Paint the hero first; the sections below render once the hero video starts playing (or the
+  // page has loaded without one), 3s at most, or straight away if the visitor scrolls or uses
+  // the menu
+  const [showRest, setShowRest] = useState(false);
+  const startRef = useRef<() => void>(() => {});
+
   useEffect(() => {
     let done = false;
     const start = () => {
@@ -105,32 +113,31 @@ export default function Home() {
       loadSections().catch(() => {});
       startTransition(() => setShowRest(true));
     };
-    // A link straight to a section should not wait
-    if (window.location.hash) {
-      const id = requestAnimationFrame(() => setTimeout(start, 0));
-      return () => cancelAnimationFrame(id);
+    startRef.current = start;
+    if (initialHash) {
+      start();
+      return;
     }
-    const inHero = (e: Event) => (e.target as Element).closest?.('[data-hero]');
     // Media events don't bubble, but a capturing listener on the document still sees them
-    const onPlaying = (e: Event) => { if (inHero(e)) loadSections().catch(() => {}); };
-    const fullyBuffered = (v: HTMLVideoElement) =>
-      v.duration > 0 && v.buffered.length > 0 && v.buffered.end(v.buffered.length - 1) >= v.duration - 0.25;
-    const onBuffered = (e: Event) => { if (inHero(e) && fullyBuffered(e.target as HTMLVideoElement)) start(); };
-    const bufferEvents = ['canplaythrough', 'progress', 'suspend'];
+    const onPlaying = (e: Event) => { if ((e.target as Element).closest?.('[data-hero]')) start(); };
     const onLoad = () => { if (!document.querySelector('[data-hero] video')) start(); };
     const intents = ['wheel', 'touchstart', 'keydown', 'scroll'];
     document.addEventListener('playing', onPlaying, true);
-    bufferEvents.forEach(ev => document.addEventListener(ev, onBuffered, true));
     intents.forEach(ev => window.addEventListener(ev, start, { passive: true }));
     if (document.readyState === 'complete') onLoad(); else window.addEventListener('load', onLoad, { once: true });
-    const timer = setTimeout(start, 6000);
+    const timer = setTimeout(start, 3000);
     return () => {
       document.removeEventListener('playing', onPlaying, true);
-      bufferEvents.forEach(ev => document.removeEventListener(ev, onBuffered, true));
       intents.forEach(ev => window.removeEventListener(ev, start));
       window.removeEventListener('load', onLoad);
       clearTimeout(timer);
     };
+  }, [initialHash]);
+
+  // Menu links scroll to their section, rendering the sections first if they aren't there yet
+  const navigate = useCallback((hash: string) => {
+    if (document.querySelector(hash)) scrollToSection(hash);
+    else { setPending({ hash, smooth: true }); startRef.current(); }
   }, []);
 
   useEffect(() => {
@@ -160,7 +167,7 @@ export default function Home() {
 
       {/* ── Header ── */}
       <header className={`fixed inset-x-0 top-0 z-50 transition-colors duration-300 ${
-        solid ? 'border-b border-forest-900/10 bg-cream-100/95 text-forest-950 backdrop-blur-sm' : 'border-b border-transparent text-white'
+        solid ? 'border-b border-forest-900/10 bg-cream-100 text-forest-950' : 'border-b border-transparent text-white'
       }`}>
         <div className={`${edge} grid h-16 grid-cols-[1fr_auto_1fr] items-center`}>
           <button onClick={() => setMenuOpen(o => !o)} aria-expanded={menuOpen} aria-controls="site-menu"
@@ -181,7 +188,7 @@ export default function Home() {
         </div>
       </header>
 
-      {menuOpen && <SiteMenu onClose={() => setMenuOpen(false)} />}
+      {menuOpen && <SiteMenu onClose={() => setMenuOpen(false)} onNavigate={navigate} />}
 
       {/* ── Hero ── */}
       <section data-hero className="relative isolate h-[100svh] min-h-[600px] overflow-hidden bg-forest-950 text-white">
@@ -222,7 +229,7 @@ export default function Home() {
 
       {showRest ? (
         <Suspense fallback={restPlaceholder}>
-          <HomeSections />
+          <HomeSections scrollTo={pending} onScrolled={clearPending} />
         </Suspense>
       ) : restPlaceholder}
     </div>

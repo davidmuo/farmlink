@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { Bell, Check, Truck } from 'lucide-react';
 import BackgroundVideo from '../BackgroundVideo';
@@ -7,8 +7,8 @@ import SplitHeading from './SplitHeading';
 import HowItWorks from './HowItWorks';
 import UssdPhone from './UssdPhone';
 import FeatureBento from './FeatureBento';
-import { NAV_LINKS, edge } from './shared';
-import { setupReveals } from './reveal';
+import { useLandingMotion } from './motion';
+import { NAV_LINKS, edge, scrollToSection, SectionTarget } from './shared';
 import { PHOTOS, VIDEOS, pexels, pexelsSrcSet } from '../../lib/media';
 
 // A notification laid over a section video, styled like the in-app toasts
@@ -48,34 +48,29 @@ const MOSAIC: { photo?: number; alt?: string; tone?: string; box: string; drift:
   { tone: 'bg-lime-300/25',                                     box: 'left-[22%] bottom-[2%] w-[12%] aspect-square', drift: 18 },
 ];
 
-export default function HomeSections() {
+interface Props {
+  // A section to show once these sections exist: a menu link used before they had loaded,
+  // or a link straight to one (e.g. /#for-farmers)
+  scrollTo?: SectionTarget | null;
+  onScrolled?: () => void;
+}
+
+export default function HomeSections({ scrollTo, onScrolled }: Props) {
   const root = useRef<HTMLDivElement>(null);
+  useLandingMotion(root);
 
-  // Slide-ins and counters are prepared before the first paint, while the sections are still off screen
-  useLayoutEffect(() => (root.current ? setupReveals(root.current) : undefined), []);
-
-  // GSAP (the scroll-linked parallax) loads once the browser is idle, so it doesn't stall the first frames
   useEffect(() => {
-    const scope = root.current;
-    if (!scope) return;
-    let cleanup: (() => void) | undefined;
-    let cancelled = false;
-    const start = () => {
-      import('./motion').then(m => { if (!cancelled) cleanup = m.setupLandingMotion(scope); }).catch(() => {});
-    };
-    const hasIdle = typeof window.requestIdleCallback === 'function';
-    const idle = hasIdle ? window.requestIdleCallback(start, { timeout: 1500 }) : window.setTimeout(start, 600);
-    return () => {
-      cancelled = true;
-      if (hasIdle) window.cancelIdleCallback(idle); else window.clearTimeout(idle);
-      cleanup?.();
-    };
-  }, []);
-
-  // Links like /#for-farmers land before these sections exist, so scroll once they do
-  useEffect(() => {
-    if (window.location.hash) document.querySelector(window.location.hash)?.scrollIntoView();
-  }, []);
+    if (!scrollTo) return;
+    let live = true;
+    // The scroll animations re-measure the page once fonts are ready; scrolling before that
+    // would be cut short, so wait for it
+    (document.fonts?.ready ?? Promise.resolve()).then(() => requestAnimationFrame(() => {
+      if (!live) return;
+      scrollToSection(scrollTo.hash, scrollTo.smooth);
+      onScrolled?.();
+    }));
+    return () => { live = false; };
+  }, [scrollTo, onScrolled]);
 
   return (
     <div ref={root}>
@@ -228,7 +223,11 @@ export default function HomeSections() {
           <div className="lg:col-span-2 lg:col-start-7">
             <p className="micro text-forest-900/45">Product</p>
             <ul className="mt-3 space-y-2 text-[15px]">
-              {NAV_LINKS.slice(0, 3).map(l => <li key={l.href}><a href={l.href} className="hover:text-forest-600">{l.label}</a></li>)}
+              {NAV_LINKS.slice(0, 3).map(l => (
+                <li key={l.href}>
+                  <a href={l.href} onClick={e => { e.preventDefault(); scrollToSection(l.href); }} className="hover:text-forest-600">{l.label}</a>
+                </li>
+              ))}
               <li><Link to="/login" className="hover:text-forest-600">Sign in</Link></li>
               <li><Link to="/register" className="hover:text-forest-600">Create account</Link></li>
             </ul>

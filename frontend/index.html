@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=2" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#0A1C14" />
     <meta name="description" content="FarmLink connects verified Nigerian farmers directly with hotels, restaurants, schools and NGOs. Post what you need and get committed supply, with no middlemen." />
@@ -23,6 +23,8 @@
       // Keep the paths and the size rule in sync with VIDEOS.hero in src/lib/media.ts and src/lib/net.ts.
       (function () {
         if (location.pathname !== '/') return;
+        // The homepage always opens at the top, never at a restored scroll position
+        if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
         var c = navigator.connection || {};
         var small = window.innerWidth < 768 || c.saveData || (c.effectiveType && c.effectiveType !== '4g');
         window.__heroPoster = small ? '/media/hero-poster-sm.f1e6703c.webp' : '/media/hero-poster-lg.7a8abc23.webp';
