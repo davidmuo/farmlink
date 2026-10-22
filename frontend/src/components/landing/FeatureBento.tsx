@@ -127,7 +127,7 @@ export default function FeatureBento({ edge }: { edge: string }) {
     <section className="bg-cream-200 py-20 text-forest-950 sm:py-28">
       <div className={edge}>
         <div className="grid gap-8 lg:grid-cols-12">
-          <SplitHeading lines={['Everything an order needs']} className="display-lg lg:col-span-8" seed={5} />
+          <SplitHeading lines={['Everything an order needs']} className="display-lg lg:col-span-8" />
           <p data-rise className="micro text-forest-900/75 lg:col-span-3 lg:col-start-10 lg:pt-3">
             From the first price to the final review, every step of an order happens in one place, with the
             same record for the buyer and the farmer.

@@ -139,8 +139,8 @@ export default {
         rise:      { from: { opacity: '0', transform: 'translateY(16px)' }, to: { opacity: '1', transform: 'translateY(0)' } },
         growX:     { from: { transform: 'scaleX(0)' }, to: { transform: 'scaleX(1)' } },
         caret:     { '0%, 100%': { opacity: '1' }, '50%': { opacity: '0' } },
-        // Opacity only: it runs on the compositor, where a blur would repaint every letter each frame
-        charIn:    { from: { opacity: '0' }, to: { opacity: '1' } },
+        // Hero headline letters: fade in out of a blur (same look as the GSAP section headings)
+        charIn:    { from: { opacity: '0', filter: 'blur(8px)' }, to: { opacity: '1', filter: 'blur(0)' } },
         menuIn:    { from: { clipPath: 'inset(0 0 100% 0)' }, to: { clipPath: 'inset(0 0 0% 0)' } },
       },
     },

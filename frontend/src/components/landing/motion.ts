@@ -3,18 +3,33 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
 gsap.registerPlugin(ScrollTrigger);
 
-/* Scroll-linked motion for the landing page (GSAP ScrollTrigger):
+/* GSAP motion for the landing page:
+     data-split      heading letters (pre-split by SplitHeading) fade in out of a blur, in a
+                     scattered order, as the heading scrolls into view
      data-parallax   media drifts against the scroll (value = percent of its height)
    and the hero (outside the scope) eases back as the page scrolls past it.
-   One-shot slide-ins and counters live in reveal.ts; headings in SplitHeading.
+   One-shot slide-ins and counters live in reveal.ts.
 
    Elements that share a parent drift on one timeline with one trigger, so there are only a
    handful of triggers to measure. This module is loaded once the browser is idle after the
-   sections render. Nothing runs for reduced motion. Returns a function that undoes it all. */
+   sections render; headings already on screen by then are left as they are, so nothing
+   blinks out. Nothing runs for reduced motion. Returns a function that undoes it all. */
 export function setupLandingMotion(scope: HTMLElement): () => void {
   const mm = gsap.matchMedia(scope);
 
   mm.add('(prefers-reduced-motion: no-preference)', () => {
+    // Read positions first, then animate, so the layout is measured once
+    const fold = window.innerHeight;
+    const headings = gsap.utils.toArray<HTMLElement>('[data-split]').filter(el => el.getBoundingClientRect().top > fold);
+
+    headings.forEach(el => {
+      gsap.from(el.querySelectorAll('.split-char'), {
+        opacity: 0, filter: 'blur(8px)', duration: 0.9, ease: 'power2.out',
+        stagger: { each: 0.018, from: 'random' },
+        scrollTrigger: { trigger: el, start: 'top 85%', once: true },
+      });
+    });
+
     const groups = new Map<Element, HTMLElement[]>();
     gsap.utils.toArray<HTMLElement>('[data-parallax]').forEach(el => {
       const parent = el.parentElement ?? el;
